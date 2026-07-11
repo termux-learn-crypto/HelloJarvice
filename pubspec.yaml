@@ -32,16 +32,15 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.8
-  flutter_tts: ^4.1.0
-  speech_to_text: ^6.6.2
-  permission_handler: ^11.3.1
-  url_launcher: ^6.3.1
-  http: ^1.2.2
+  flutter_tts: ^4.2.5
+  speech_to_text: ^7.0.0
+  permission_handler: ^12.0.0
+  url_launcher: ^6.3.2
+  http: ^1.6.0
   sqflite: ^2.4.2
   path_provider: ^2.1.5
-  intl: ^0.20.2
+  intl: ^0.20.3
   clipboard: ^0.1.3
-  flutter_local_notifications: ^18.0.1
 
 dev_dependencies:
   flutter_test:
@@ -62,8 +61,8 @@ flutter:
 
   uses-material-design: true
 
-  assets:
-    - assets/
+  # assets:
+  #   - assets/models/hey_jarvis.onnx (download manually)
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
