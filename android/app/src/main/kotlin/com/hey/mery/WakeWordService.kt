@@ -24,6 +24,8 @@ class WakeWordService : Service() {
         const val CHANNEL_ID = "wake_word_channel"
         const val NOTIFICATION_ID = 1
         const val TAG = "WakeWordService"
+        const val SAMPLE_RATE = 16000
+        const val CHUNK_SAMPLES = 1280
     }
 
     private var audioRecord: AudioRecord? = null
@@ -62,16 +64,15 @@ class WakeWordService : Service() {
     private fun startListening() {
         if (isRunning.getAndSet(true)) return
 
-        val sampleRate = 16000
         val bufferSize = AudioRecord.getMinBufferSize(
-            sampleRate,
+            SAMPLE_RATE,
             AudioFormat.CHANNEL_IN_MONO,
             AudioFormat.ENCODING_PCM_16BIT
         )
 
         audioRecord = AudioRecord(
             MediaRecorder.AudioSource.MIC,
-            sampleRate,
+            SAMPLE_RATE,
             AudioFormat.CHANNEL_IN_MONO,
             AudioFormat.ENCODING_PCM_16BIT,
             bufferSize
@@ -79,14 +80,26 @@ class WakeWordService : Service() {
 
         try {
             audioRecord?.startRecording()
-            val buffer = ShortArray(bufferSize)
+            isRunning.set(true)
 
             Thread {
                 android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO)
+                val tempBuffer = ShortArray(CHUNK_SAMPLES * 2)
+                var accumulated = 0
+                val chunkBuffer = ShortArray(CHUNK_SAMPLES)
+
                 while (isRunning.get()) {
-                    val read = audioRecord?.read(buffer, 0, bufferSize) ?: 0
+                    val read = audioRecord?.read(tempBuffer, accumulated, CHUNK_SAMPLES * 2 - accumulated) ?: 0
                     if (read > 0) {
-                        wakeWordEngine?.processAudio(buffer)
+                        accumulated += read
+                    }
+
+                    while (accumulated >= CHUNK_SAMPLES) {
+                        System.arraycopy(tempBuffer, 0, chunkBuffer, 0, CHUNK_SAMPLES)
+                        System.arraycopy(tempBuffer, CHUNK_SAMPLES, tempBuffer, 0, accumulated - CHUNK_SAMPLES)
+                        accumulated -= CHUNK_SAMPLES
+
+                        wakeWordEngine?.processAudio(chunkBuffer)
                     }
                 }
             }.start()
