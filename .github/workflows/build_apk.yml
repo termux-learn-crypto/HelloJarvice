@@ -25,14 +25,7 @@ jobs:
           cache: true
 
       - name: Generate keystore
-        run: |
-          keytool -genkeypair -v \
-            -keystore android/hello-jarvice.jks \
-            -alias ${{ secrets.KEY_ALIAS }} \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass ${{ secrets.KEY_STORE_PASSWORD }} \
-            -keypass ${{ secrets.KEY_PASSWORD }} \
-            -dname "CN=HeyMery, OU=Dev, O=HeyMery, L=Delhi, ST=Delhi, C=IN"
+        run: keytool -genkeypair -v -keystore android/hello-jarvice.jks -alias ${{ secrets.KEY_ALIAS }} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${{ secrets.KEY_STORE_PASSWORD }} -keypass ${{ secrets.KEY_PASSWORD }} -dname "CN=HeyMery, OU=Dev, O=HeyMery, L=Delhi, ST=Delhi, C=IN"
 
       - name: Create key.properties
         run: |
