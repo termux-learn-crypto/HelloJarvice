@@ -10,9 +10,11 @@ class IntentParser {
     'CALL': [
       RegExp(r'call\s+(\w+)', caseSensitive: false),
       RegExp(r'phone\s+(\w+)', caseSensitive: false),
+      RegExp(r'dial\s+(\w+)', caseSensitive: false),
     ],
     'WHATSAPP': [
       RegExp(r'whatsapp\s+(\w+)\s+(.+)', caseSensitive: false),
+      RegExp(r'send\s+whatsapp\s+to\s+(\w+)\s+(.*)', caseSensitive: false),
       RegExp(r'whatsapp\s+(\w+)', caseSensitive: false),
     ],
     'WIFI_ON': [
@@ -26,10 +28,12 @@ class IntentParser {
     'BLUETOOTH_ON': [
       RegExp(r'bluetooth\s*on', caseSensitive: false),
       RegExp(r'bt\s*on', caseSensitive: false),
+      RegExp(r'turn\s*on\s*bluetooth', caseSensitive: false),
     ],
     'BLUETOOTH_OFF': [
       RegExp(r'bluetooth\s*off', caseSensitive: false),
       RegExp(r'bt\s*off', caseSensitive: false),
+      RegExp(r'turn\s*off\s*bluetooth', caseSensitive: false),
     ],
     'FLASHLIGHT_ON': [
       RegExp(r'flashlight?\s*on', caseSensitive: false),
@@ -65,8 +69,24 @@ class IntentParser {
       RegExp(r'write\s*note\s*(.*)', caseSensitive: false),
     ],
     'OPEN': [
-      RegExp(r'open\s*(\w+)', caseSensitive: false),
-      RegExp(r'launch\s*(\w+)', caseSensitive: false),
+      RegExp(r'open\s*(\w[\w\s]*)', caseSensitive: false),
+      RegExp(r'launch\s*(\w[\w\s]*)', caseSensitive: false),
+    ],
+    'PLAY_MUSIC': [
+      RegExp(r'play\s*(?:song|music|gaana)\s*(.*)', caseSensitive: false),
+      RegExp(r'(?:song|music|gaana)\s*chal[ao]\s*(.*)', caseSensitive: false),
+      RegExp(r'gaana\s*chal[ao]\s*(.*)', caseSensitive: false),
+    ],
+    'YOUTUBE': [
+      RegExp(r'youtube\s*pe\s*(.*)', caseSensitive: false),
+      RegExp(r'youtube\s*(?:search|play|chalao|kholo)\s*(.*)', caseSensitive: false),
+      RegExp(r'video\s*chal[ao]\s*(.*)', caseSensitive: false),
+    ],
+    'REMINDER': [
+      RegExp(r'reminder\s*set\s*(.*)', caseSensitive: false),
+      RegExp(r'set\s*reminder\s*(.*)', caseSensitive: false),
+      RegExp(r'remind\s*me\s*(.*)', caseSensitive: false),
+      RegExp(r'yaad\s*dilana\s*(.*)', caseSensitive: false),
     ],
   };
 
@@ -77,8 +97,8 @@ class IntentParser {
       RegExp(r'call\s*karo\s*(\w+)', caseSensitive: false),
     ],
     'WHATSAPP': [
-      RegExp(r'whatsapp\s*karo\s*(\w+)', caseSensitive: false),
-      RegExp(r'(\w+)\s*ko\s*whatsapp\s*karo', caseSensitive: false),
+      RegExp(r'whatsapp\s*(?:bhejo|karo)\s*(\w+)', caseSensitive: false),
+      RegExp(r'(\w+)\s*ko\s*whatsapp\s*(?:bhejo|karo)', caseSensitive: false),
       RegExp(r'(\w+)\s*ko\s*message\s*karo\s*(.*)', caseSensitive: false),
     ],
     'WIFI_ON': [
@@ -126,7 +146,22 @@ class IntentParser {
       RegExp(r'(yaad|reminder)\s*(.*)', caseSensitive: false),
     ],
     'OPEN': [
-      RegExp(r'(open|kholo|khol|chalao|chala)\s*(\w+)', caseSensitive: false),
+      RegExp(r'(open|kholo|khol|chalao|chala)\s*(\w[\w\s]*)', caseSensitive: false),
+    ],
+    'PLAY_MUSIC': [
+      RegExp(r'(song|gaana|music)\s*chal[ao]\s*(.*)', caseSensitive: false),
+      RegExp(r'gaana\s*chal[ao]\s*(.*)', caseSensitive: false),
+      RegExp(r'play\s*(?:song|music|gaana)\s*(.*)', caseSensitive: false),
+    ],
+    'YOUTUBE': [
+      RegExp(r'youtube\s*pe\s*(.*)', caseSensitive: false),
+      RegExp(r'youtube\s*(?:search|play|chalao|kholo)\s*(.*)', caseSensitive: false),
+      RegExp(r'video\s*chal[ao]\s*(.*)', caseSensitive: false),
+    ],
+    'REMINDER': [
+      RegExp(r'reminder\s*(set|laga|rakh)\s*(.*)', caseSensitive: false),
+      RegExp(r'(yaad|reminder)\s*dilana\s*(.*)', caseSensitive: false),
+      RegExp(r'yaad\s*dilana\s*(.*)', caseSensitive: false),
     ],
   };
 
@@ -157,8 +192,8 @@ class IntentParser {
   IntentResult _buildResult(String action, RegExpMatch match) {
     Map<String, String> params = {};
     for (int i = 1; i < match.groupCount + 1; i++) {
-      if (match.group(i) != null && match.group(i)!.isNotEmpty) {
-        params['value$i'] = match.group(i)!;
+      if (match.group(i) != null && match.group(i)!.trim().isNotEmpty) {
+        params['value$i'] = match.group(i)!.trim();
       }
     }
     return IntentResult(action: action, params: params);

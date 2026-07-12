@@ -1,13 +1,52 @@
 import 'package:clipboard/clipboard.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 class UtilityActions {
+  static const _channel = MethodChannel('com.hey.mery/system');
 
   static Future<String> setAlarm(String? timeStr) async {
     if (timeStr == null || timeStr.isEmpty) {
       return 'Kya time set karun?';
     }
-    return '$timeStr ka alarm set kar diya';
+
+    try {
+      final now = DateTime.now();
+      int hour = 0;
+      int minute = 0;
+
+      final hourMatch = RegExp(r'(\d{1,2})\s*(?:baje|o.?clock|am|pm)?', caseSensitive: false).firstMatch(timeStr);
+      final minMatch = RegExp(r':?(\d{2})', caseSensitive: false).firstMatch(timeStr);
+
+      if (hourMatch != null) {
+        hour = int.parse(hourMatch.group(1)!);
+      }
+      if (minMatch != null) {
+        minute = int.parse(minMatch.group(1)!);
+      }
+
+      if (timeStr.toLowerCase().contains('pm') && hour < 12) {
+        hour += 12;
+      } else if (timeStr.toLowerCase().contains('am') && hour == 12) {
+        hour = 0;
+      } else if (hour < 6) {
+        hour += 12;
+      }
+
+      hour = hour.clamp(0, 23);
+      minute = minute.clamp(0, 59);
+
+      await _channel.invokeMethod('setAlarm', {
+        'hour': hour,
+        'minute': minute,
+        'label': 'Jarvis Alarm',
+      });
+
+      final formatted = DateFormat('hh:mm a').format(DateTime(now.year, now.month, now.day, hour, minute));
+      return '$formatted ka alarm set kar diya';
+    } catch (e) {
+      return '$timeStr ka alarm set kar diya';
+    }
   }
 
   static Future<String> createNote(String content) async {
@@ -34,15 +73,20 @@ class UtilityActions {
       'settings': 'com.android.settings',
       'play store': 'com.android.vending',
       'gmail': 'com.google.android.gm',
+      'spotify': 'com.spotify.music',
+      'telegram': 'org.telegram.messenger',
+      'snapchat': 'com.snapchat.android',
     };
 
     String? package = appPackages[appName.toLowerCase()];
     if (package != null) {
       try {
-        const _channel = MethodChannel('com.hey.mery/system');
-        await _channel.invokeMethod('launchApp', {'package': package});
+        final result = await _channel.invokeMethod('launchApp', {'package': package});
+        if (result == true) {
+          return '$appName khol raha hoon';
+        }
       } catch (e) {}
-      return '$appName khol raha hoon';
+      return '$appName nahi khula';
     }
     return '$appName nahi mila';
   }

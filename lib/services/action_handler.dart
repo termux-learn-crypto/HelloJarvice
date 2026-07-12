@@ -59,6 +59,18 @@ class ActionHandler {
           String appName = intent.params['value1'] ?? intent.params['value2'] ?? '';
           return await UtilityActions.launchApp(appName);
 
+        case 'PLAY_MUSIC':
+          String query = intent.params['value1'] ?? intent.params['value2'] ?? '';
+          return await MediaActions.playMusic(query.isNotEmpty ? query : null);
+
+        case 'YOUTUBE':
+          String query = intent.params['value1'] ?? intent.params['value2'] ?? '';
+          return await MediaActions.playVideo(query.isNotEmpty ? query : null);
+
+        case 'REMINDER':
+          String text = intent.params['value1'] ?? intent.params['value2'] ?? '';
+          return await UtilityActions.setReminder(text);
+
         default:
           return 'Mujhe samajh nahi aaya. Phir se boliye.';
       }

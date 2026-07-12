@@ -143,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => SettingsScreen()),
+                MaterialPageRoute(builder: (_) => SettingsScreen(ttsService: _tts)),
               );
             },
           ),

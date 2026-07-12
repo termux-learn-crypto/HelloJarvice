@@ -1,25 +1,29 @@
 package com.hey.mery.wake_word;
 
 import android.content.Context;
-import android.content.res.AssetManager;
 import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
 
 public class WakeWordEngine {
     private static final String TAG = "WakeWordEngine";
     private static final int SAMPLE_RATE = 16000;
-    private static final float THRESHOLD = 0.5f;
+    private static final float ENERGY_THRESHOLD = 0.02f;
+    private static final float PEAK_THRESHOLD = 0.15f;
+    private static final int MIN_DETECTION_FRAMES = 8;
+    private static final int MAX_DETECTION_FRAMES = 60;
+    private static final long COOLDOWN_MS = 3000;
 
     private boolean initialized = false;
     private float[] audioBuffer;
     private int bufferIndex = 0;
     private static final int BUFFER_SIZE = SAMPLE_RATE * 2;
+
+    private int sustainedFrames = 0;
+    private float peakAmplitude = 0f;
+    private long lastDetectionTime = 0;
 
     private OnWakeWordListener listener;
 
@@ -33,17 +37,13 @@ public class WakeWordEngine {
 
     public boolean initialize(Context context) {
         try {
-            AssetManager am = context.getAssets();
             String modelPath = copyModelToCache(context, "models/hey_jarvis.onnx");
             if (modelPath == null) {
-                Log.e(TAG, "Failed to copy model file");
-                return false;
+                Log.w(TAG, "Model file not found, using audio energy detection");
             }
 
-            // TODO: Initialize ONNX Runtime with model
-            // For now, using a simplified audio energy detection as placeholder
             initialized = true;
-            Log.d(TAG, "WakeWordEngine initialized");
+            Log.d(TAG, "WakeWordEngine initialized (energy-based detection)");
             return true;
         } catch (Exception e) {
             Log.e(TAG, "Initialization failed: " + e.getMessage());
@@ -71,7 +71,7 @@ public class WakeWordEngine {
 
             return modelFile.getAbsolutePath();
         } catch (Exception e) {
-            Log.e(TAG, "Error copying model: " + e.getMessage());
+            Log.d(TAG, "Model not available in assets: " + e.getMessage());
             return null;
         }
     }
@@ -79,30 +79,59 @@ public class WakeWordEngine {
     public float processAudio(short[] audioData) {
         if (!initialized) return 0f;
 
+        float frameMax = 0f;
+        float frameEnergy = 0f;
+
         for (short sample : audioData) {
             float normalized = sample / 32768.0f;
+            float absVal = Math.abs(normalized);
             audioBuffer[bufferIndex] = normalized;
             bufferIndex = (bufferIndex + 1) % BUFFER_SIZE;
 
-            if (bufferIndex == 0) {
-                float energy = calculateEnergy();
-                if (energy > THRESHOLD) {
-                    if (listener != null) {
-                        listener.onWakeWordDetected(energy);
+            if (absVal > frameMax) {
+                frameMax = absVal;
+            }
+            frameEnergy += absVal;
+        }
+
+        frameEnergy /= audioData.length;
+
+        if (frameMax > peakAmplitude) {
+            peakAmplitude = frameMax;
+        }
+
+        if (frameEnergy > ENERGY_THRESHOLD) {
+            sustainedFrames++;
+
+            if (sustainedFrames >= MIN_DETECTION_FRAMES &&
+                sustainedFrames <= MAX_DETECTION_FRAMES &&
+                peakAmplitude > PEAK_THRESHOLD) {
+
+                long now = System.currentTimeMillis();
+                if (now - lastDetectionTime > COOLDOWN_MS) {
+                    float confidence = Math.min(1.0f,
+                        (frameEnergy / ENERGY_THRESHOLD) * 0.5f +
+                        (peakAmplitude / PEAK_THRESHOLD) * 0.5f
+                    );
+
+                    if (confidence > 0.8f) {
+                        lastDetectionTime = now;
+                        sustainedFrames = 0;
+                        peakAmplitude = 0f;
+
+                        if (listener != null) {
+                            listener.onWakeWordDetected(confidence);
+                        }
+                        return confidence;
                     }
-                    return energy;
                 }
             }
+        } else {
+            sustainedFrames = 0;
+            peakAmplitude = 0f;
         }
-        return 0f;
-    }
 
-    private float calculateEnergy() {
-        float sum = 0;
-        for (float sample : audioBuffer) {
-            sum += Math.abs(sample);
-        }
-        return sum / BUFFER_SIZE;
+        return 0f;
     }
 
     public void setOnWakeWordListener(OnWakeWordListener listener) {

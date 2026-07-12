@@ -14,13 +14,16 @@ class Conversation {
   });
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
+    final map = <String, dynamic>{
       'text': text,
       'reply': reply,
       'timestamp': timestamp,
       'isUser': isUser ? 1 : 0,
     };
+    if (id != null) {
+      map['id'] = id;
+    }
+    return map;
   }
 
   factory Conversation.fromMap(Map<String, dynamic> map) {

@@ -32,6 +32,7 @@ class SystemActions {
 
   static Future<String> openSettings(String? section) async {
     try {
+      await _channel.invokeMethod('openSettings', {'section': section});
       return 'Settings open ki';
     } catch (e) {
       return 'Settings open nahi ho paya';

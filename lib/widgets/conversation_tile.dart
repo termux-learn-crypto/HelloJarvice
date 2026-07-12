@@ -11,30 +11,29 @@ class ConversationTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Column(
-        crossAxisAlignment:
-            conversation.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: conversation.isUser
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
           if (conversation.isUser)
             _buildBubble(
               context,
               conversation.text,
               Colors.blueAccent,
-              Alignment.centerRight,
+              isUser: true,
             )
           else ...[
             _buildBubble(
               context,
               conversation.text,
               Colors.grey.shade200,
-              Alignment.centerLeft,
-              isUser: false,
+              isUser: true,
             ),
             if (conversation.reply.isNotEmpty)
               _buildBubble(
                 context,
                 conversation.reply,
-                Colors.grey.shade100,
-                Alignment.centerLeft,
+                Colors.indigo.shade100,
                 isUser: false,
                 isReply: true,
               ),
@@ -47,33 +46,35 @@ class ConversationTile extends StatelessWidget {
   Widget _buildBubble(
     BuildContext context,
     String text,
-    Color color,
-    Alignment alignment, {
+    Color color, {
     bool isUser = true,
     bool isReply = false,
   }) {
-    return Container(
-      margin: EdgeInsets.only(
-        top: 2,
-        left: isUser ? 50 : 0,
-        right: isUser ? 0 : 50,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(20),
-          topRight: const Radius.circular(20),
-          bottomLeft: isUser ? const Radius.circular(20) : Radius.zero,
-          bottomRight: isUser ? Radius.zero : const Radius.circular(20),
+    return Align(
+      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+      child: Container(
+        margin: EdgeInsets.only(
+          top: 2,
+          left: isUser ? 50 : 0,
+          right: isUser ? 0 : 50,
         ),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: isUser ? Colors.white : Colors.black87,
-          fontSize: isReply ? 14 : 16,
-          fontStyle: isReply ? FontStyle.italic : FontStyle.normal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.only(
+            topLeft: const Radius.circular(20),
+            topRight: const Radius.circular(20),
+            bottomLeft: isUser ? const Radius.circular(20) : Radius.zero,
+            bottomRight: isUser ? Radius.zero : const Radius.circular(20),
+          ),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            color: isUser ? Colors.white : Colors.black87,
+            fontSize: isReply ? 14 : 16,
+            fontStyle: isReply ? FontStyle.italic : FontStyle.normal,
+          ),
         ),
       ),
     );

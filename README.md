@@ -4,9 +4,11 @@
 
 ### Step 1: Download the Wake Word Model
 
-1. Go to https://github.com/niclasreich/openwakeword-onnx-models
-2. Download `hey_jarvis.onnx` file
-3. Place it in: `assets/models/hey_jarvis.onnx`
+1. Go to https://github.com/dscripka/openWakeWord/releases/tag/v0.5.1
+2. Download `hey_jarvis_v0.1.onnx` file
+3. Rename it to `hey_jarvis.onnx`
+4. Place it in: `assets/models/hey_jarvis.onnx`
+   (Already included in the repo!)
 
 ### Step 2: Push to GitHub
 

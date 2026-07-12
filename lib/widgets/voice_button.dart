@@ -34,11 +34,11 @@ class _VoiceButtonState extends State<VoiceButton>
   @override
   void didUpdateWidget(VoiceButton oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isListening) {
+    if (widget.isListening && !oldWidget.isListening) {
       _animController.repeat(reverse: true);
-    } else {
+    } else if (!widget.isListening && oldWidget.isListening) {
       _animController.stop();
-      _animController.reset();
+      _animController.animateTo(0.0, duration: const Duration(milliseconds: 300));
     }
   }
 
@@ -70,7 +70,7 @@ class _VoiceButtonState extends State<VoiceButton>
                     color: (widget.isListening
                             ? Colors.redAccent
                             : Theme.of(context).primaryColor)
-                        .withAlpha(102),
+                        .withValues(alpha: 0.4),
                     blurRadius: widget.isListening ? 30 : 20,
                     spreadRadius: widget.isListening ? 10 : 5,
                   ),

@@ -1,4 +1,4 @@
-package com.hey.hello_jarvice
+package com.hey.mery
 
 import android.app.Notification
 import android.app.NotificationChannel

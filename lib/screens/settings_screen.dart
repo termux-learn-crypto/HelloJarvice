@@ -1,28 +1,48 @@
 import 'package:flutter/material.dart';
+import '../services/tts_service.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  final TtsService ttsService;
+
+  const SettingsScreen({super.key, required this.ttsService});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  double _speechRate = 0.4;
-  double _pitch = 1.0;
+  late double _speechRate;
+  late double _pitch;
+
+  @override
+  void initState() {
+    super.initState();
+    _speechRate = widget.ttsService.speechRate;
+    _pitch = widget.ttsService.pitch;
+  }
+
+  Future<void> _updateSpeed(double val) async {
+    setState(() => _speechRate = val);
+    await widget.ttsService.updateSettings(speechRate: val);
+  }
+
+  Future<void> _updatePitch(double val) async {
+    setState(() => _pitch = val);
+    await widget.ttsService.updateSettings(pitch: val);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Settings')),
+      appBar: AppBar(title: const Text('Settings')),
       body: ListView(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         children: [
           Card(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
+                const Padding(
                   padding: EdgeInsets.all(16),
                   child: Text(
                     'Voice Settings',
@@ -30,53 +50,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 ListTile(
-                  title: Text('Speed'),
+                  title: const Text('Speed'),
                   subtitle: Slider(
                     value: _speechRate,
                     min: 0.1,
                     max: 1.0,
                     divisions: 9,
                     label: _speechRate.toStringAsFixed(1),
-                    onChanged: (val) => setState(() => _speechRate = val),
+                    onChanged: _updateSpeed,
                   ),
                 ),
                 ListTile(
-                  title: Text('Pitch'),
+                  title: const Text('Pitch'),
                   subtitle: Slider(
                     value: _pitch,
                     min: 0.5,
                     max: 2.0,
                     divisions: 15,
                     label: _pitch.toStringAsFixed(1),
-                    onChanged: (val) => setState(() => _pitch = val),
+                    onChanged: _updatePitch,
                   ),
                 ),
               ],
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Card(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
+                const Padding(
                   padding: EdgeInsets.all(16),
                   child: Text(
                     'About',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
-                ListTile(
+                const ListTile(
                   leading: Icon(Icons.info),
                   title: Text('Version'),
                   subtitle: Text('1.0.0'),
                 ),
-                ListTile(
+                const ListTile(
                   leading: Icon(Icons.code),
                   title: Text('Wake Word'),
                   subtitle: Text('Hey Jarvis (OpenWakeWord)'),
                 ),
-                ListTile(
+                const ListTile(
                   leading: Icon(Icons.language),
                   title: Text('Languages'),
                   subtitle: Text('Hindi, English'),

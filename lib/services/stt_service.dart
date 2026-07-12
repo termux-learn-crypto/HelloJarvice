@@ -13,7 +13,7 @@ class SttService {
     return _available;
   }
 
-  Future<String> listen() async {
+  Future<String> listen({String? localeId}) async {
     if (!_available) {
       await initialize();
     }
@@ -22,11 +22,13 @@ class SttService {
     String result = '';
     _listening = true;
 
+    String selectedLocale = localeId ?? _detectLocale();
+
     await _speech.listen(
       onResult: (val) {
         result = val.recognizedWords;
       },
-      localeId: 'hi_IN',
+      localeId: selectedLocale,
       listenMode: stt.ListenMode.dictation,
     );
 
@@ -34,6 +36,10 @@ class SttService {
     await stopListening();
 
     return result;
+  }
+
+  String _detectLocale() {
+    return 'hi_IN';
   }
 
   Future<void> stopListening() async {
