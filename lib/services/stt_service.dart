@@ -4,32 +4,26 @@ class SttService {
   final stt.SpeechToText _speech = stt.SpeechToText();
   bool _available = false;
   bool _listening = false;
-  String? _lastError;
 
   Future<bool> initialize() async {
     try {
       _available = await _speech.initialize(
         onStatus: (status) {},
-        onError: (error) {
-          _lastError = error.errorMsg;
-          _available = false;
-        },
+        onError: (error) {},
       );
     } catch (e) {
       _available = false;
-      _lastError = e.toString();
     }
     return _available;
   }
 
-  Future<String> listen({String? localeId}) async {
+  Future<String> listen({String? localeId, void Function(String)? onLiveResult}) async {
     if (!_available) {
       await initialize();
     }
     if (!_available) return '';
 
     String result = '';
-    bool gotResult = false;
     _listening = true;
 
     String selectedLocale = localeId ?? _detectLocale();
@@ -39,21 +33,21 @@ class SttService {
         onResult: (val) {
           if (val.recognizedWords.isNotEmpty) {
             result = val.recognizedWords;
-            gotResult = true;
+            onLiveResult?.call(result);
           }
         },
         localeId: selectedLocale,
         listenMode: stt.ListenMode.dictation,
+        cancelOnError: true,
       );
 
-      await Future.delayed(const Duration(seconds: 4));
+      await Future.delayed(const Duration(seconds: 5));
       await stopListening();
 
-      if (!gotResult && selectedLocale == 'hi_IN') {
-        return await listen(localeId: 'en_US');
+      if (result.isEmpty && selectedLocale == 'hi_IN') {
+        return await listen(localeId: 'en_US', onLiveResult: onLiveResult);
       }
     } catch (e) {
-      _lastError = e.toString();
       await stopListening();
     }
 
@@ -75,7 +69,6 @@ class SttService {
 
   bool get isListening => _listening;
   bool get isAvailable => _available;
-  String? get lastError => _lastError;
 
   void dispose() {
     _speech.stop();

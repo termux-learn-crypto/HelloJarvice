@@ -29,6 +29,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isListening = false;
   bool _wakeWordActive = false;
   bool _processing = false;
+  String _liveText = '';
+  String _statusMessage = '';
 
   @override
   void initState() {
@@ -38,7 +40,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _initialize() async {
     await _tts.initialize();
-    await _stt.initialize();
+    bool sttReady = await _stt.initialize();
+    if (!sttReady && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Speech recognition available nahi hai. Device check karein.'),
+          duration: Duration(seconds: 4),
+        ),
+      );
+    }
     await _tts.speak('Namaste, main Jarvis hoon. Kaise madad kar sakta hoon?');
     _loadHistory();
     _initWakeWord();
@@ -71,6 +81,8 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _isListening = true;
       _processing = true;
+      _liveText = '';
+      _statusMessage = 'Sun raha hoon...';
     });
 
     if (_wakeWordActive) {
@@ -78,26 +90,35 @@ class _HomeScreenState extends State<HomeScreen> {
       await Future.delayed(const Duration(milliseconds: 500));
     }
 
-    String text = await _stt.listen();
+    String text = await _stt.listen(
+      onLiveResult: (live) {
+        if (mounted) {
+          setState(() => _liveText = live);
+        }
+      },
+    );
 
     if (text.isEmpty) {
       setState(() {
         _isListening = false;
         _processing = false;
+        _liveText = '';
+        _statusMessage = 'Kuch suna nahi. Phir se boliye.';
       });
       if (_wakeWordActive) {
         await _wakeWord.startListening();
       }
+      await Future.delayed(const Duration(seconds: 2));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Kuch suna nahi. Phir se boliye.'),
-            duration: Duration(seconds: 2),
-          ),
-        );
+        setState(() => _statusMessage = '');
       }
       return;
     }
+
+    setState(() {
+      _liveText = '';
+      _statusMessage = 'Processing...';
+    });
 
     _addConversation(text, '', true);
     setState(() => _isListening = false);
@@ -106,6 +127,8 @@ class _HomeScreenState extends State<HomeScreen> {
     String reply = await ActionHandler.execute(intent);
 
     _addConversation(text, reply, false);
+    setState(() => _statusMessage = '');
+
     await _tts.speak(reply);
 
     setState(() => _processing = false);
@@ -209,9 +232,68 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
           ),
+          if (_isListening || _liveText.isNotEmpty || _statusMessage.isNotEmpty)
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              margin: EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: _isListening
+                    ? Colors.redAccent.withValues(alpha: 0.1)
+                    : Colors.grey.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: _isListening ? Colors.redAccent.withValues(alpha: 0.3) : Colors.grey.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Column(
+                children: [
+                  if (_isListening)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.redAccent,
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          _statusMessage,
+                          style: TextStyle(
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  if (_liveText.isNotEmpty) ...[
+                    if (_isListening) SizedBox(height: 8),
+                    Text(
+                      _liveText,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                  if (!_isListening && _statusMessage.isNotEmpty && _liveText.isEmpty)
+                    Text(
+                      _statusMessage,
+                      style: TextStyle(color: Colors.grey, fontSize: 14),
+                      textAlign: TextAlign.center,
+                    ),
+                ],
+              ),
+            ),
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.only(bottom: 16, top: 8),
               child: VoiceButton(
                 isListening: _isListening,
                 onTap: _startListening,
