@@ -25,13 +25,13 @@ jobs:
           cache: true
 
       - name: Generate keystore
-        run: keytool -genkeypair -v -keystore android/hello-jarvice.jks -alias ${{ secrets.KEY_ALIAS }} -keyalg RSA -keysize 2048 -validity 10000 -storepass ${{ secrets.KEY_STORE_PASSWORD }} -keypass ${{ secrets.KEY_PASSWORD }} -dname "CN=HeyMery, OU=Dev, O=HeyMery, L=Delhi, ST=Delhi, C=IN"
+        run: keytool -genkeypair -v -keystore android/hello-jarvice.jks -alias jarvice -keyalg RSA -keysize 2048 -validity 10000 -storepass jarvice123 -keypass jarvice123 -dname "CN=HeyMery, OU=Dev, O=HeyMery, L=Delhi, ST=Delhi, C=IN"
 
       - name: Create key.properties
         run: |
-          echo "storePassword=${{ secrets.KEY_STORE_PASSWORD }}" > android/key.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storePassword=jarvice123" > android/key.properties
+          echo "keyPassword=jarvice123" >> android/key.properties
+          echo "keyAlias=jarvice" >> android/key.properties
           echo "storeFile=hello-jarvice.jks" >> android/key.properties
 
       - name: Install dependencies
