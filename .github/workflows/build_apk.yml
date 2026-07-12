@@ -24,8 +24,15 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Decode keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/hello-jarvice.jks
+      - name: Generate keystore
+        run: |
+          keytool -genkeypair -v \
+            -keystore android/hello-jarvice.jks \
+            -alias ${{ secrets.KEY_ALIAS }} \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass ${{ secrets.KEY_STORE_PASSWORD }} \
+            -keypass ${{ secrets.KEY_PASSWORD }} \
+            -dname "CN=HeyMery, OU=Dev, O=HeyMery, L=Delhi, ST=Delhi, C=IN"
 
       - name: Create key.properties
         run: |
