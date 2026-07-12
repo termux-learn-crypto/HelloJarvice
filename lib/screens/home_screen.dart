@@ -73,6 +73,11 @@ class _HomeScreenState extends State<HomeScreen> {
       _processing = true;
     });
 
+    if (_wakeWordActive) {
+      await _wakeWord.stopListening();
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+
     String text = await _stt.listen();
 
     if (text.isEmpty) {
@@ -80,6 +85,17 @@ class _HomeScreenState extends State<HomeScreen> {
         _isListening = false;
         _processing = false;
       });
+      if (_wakeWordActive) {
+        await _wakeWord.startListening();
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Kuch suna nahi. Phir se boliye.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
       return;
     }
 
@@ -93,6 +109,10 @@ class _HomeScreenState extends State<HomeScreen> {
     await _tts.speak(reply);
 
     setState(() => _processing = false);
+
+    if (_wakeWordActive) {
+      await _wakeWord.startListening();
+    }
   }
 
   Future<void> _addConversation(String text, String reply, bool isUser) async {
