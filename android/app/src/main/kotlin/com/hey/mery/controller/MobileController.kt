@@ -8,6 +8,7 @@ import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.PixelFormat
 import android.net.ConnectivityManager
@@ -18,7 +19,6 @@ import android.os.Build
 import android.os.Environment
 import android.os.PowerManager
 import android.os.StatFs
-import android.provider.AlarmClockContracts
 import android.provider.CalendarContract
 import android.provider.ContactsContract
 import android.provider.MediaStore
@@ -27,7 +27,7 @@ import android.provider.Settings
 import android.view.WindowManager
 import com.hey.mery.data.CommandResult
 import com.hey.mery.shizuku.ShizukuController
-import com.hey.mery.root.RootExecutor
+import com.hey.mery.root.RootController
 import com.hey.mery.util.JarviceLogger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -55,7 +55,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
     val torchController = TorchController(context)
     val settingsController = SettingsController(context)
     val shizukuController = ShizukuController(context)
-    val rootController = RootExecutor()
+    val rootController = RootController()
     val reminderController = ReminderController(context)
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -695,7 +695,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = context.contentResolver.getType(uri) ?: "*/*"
                 putExtra(Intent.EXTRA_STREAM, uri)
-                addFlags(Intent.FLAG_ACTIVITY_READABLE_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(Intent.createChooser(intent, "Share file via"))
             CommandResult.ok("File share ho gayi")
@@ -933,9 +933,11 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
             val level = WifiManager.calculateSignalLevel(rssi, 5)
             CommandResult.ok(
                 "Connected to: $ssid",
-                "ssid" to ssid,
-                "rssi" to rssi,
-                "signalLevel" to level
+                mapOf(
+                    "ssid" to ssid,
+                    "rssi" to rssi,
+                    "signalLevel" to level
+                )
             )
         } catch (e: Exception) {
             CommandResult.error("WiFi info nahi mil payi: ${e.message}")
@@ -1061,7 +1063,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
 
     private fun getChargingState(): CommandResult {
         return try {
-            val intentFilter = Intent(Intent.ACTION_BATTERY_CHANGED)
+            val intentFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
             val batteryStatus = context.registerReceiver(null, intentFilter)
             val status = batteryStatus?.getIntExtra("status", -1) ?: -1
             val isCharging = status == 2 || status == 5
@@ -1085,9 +1087,11 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
             val freeGB = free / (1024.0 * 1024 * 1024)
             CommandResult.ok(
                 "Storage: ${"%.1f".format(usedGB)}GB used of ${"%.1f".format(totalGB)}GB",
-                "totalGB" to totalGB,
-                "usedGB" to usedGB,
-                "freeGB" to freeGB
+                mapOf(
+                    "totalGB" to totalGB,
+                    "usedGB" to usedGB,
+                    "freeGB" to freeGB
+                )
             )
         } catch (e: Exception) {
             CommandResult.error("Storage info nahi mil payi: ${e.message}")
@@ -1104,9 +1108,11 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
             val usedMB = totalMB - freeMB
             CommandResult.ok(
                 "RAM: ${usedMB}MB used of ${totalMB}MB",
-                "totalMB" to totalMB,
-                "usedMB" to usedMB,
-                "freeMB" to freeMB
+                mapOf(
+                    "totalMB" to totalMB,
+                    "usedMB" to usedMB,
+                    "freeMB" to freeMB
+                )
             )
         } catch (e: Exception) {
             CommandResult.error("Memory info nahi mil payi: ${e.message}")
@@ -1452,27 +1458,29 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
             val humidity = current.optString("humidity", "")
             val windKmph = current.optString("windspeedKmph", "")
             val desc = current.getJSONArray("weatherDesc").let {
-                if (it.has(0)) it.getJSONObject(0).optString("value", "") else ""
+                if (it.length() > 0) it.getJSONObject(0).optString("value", "") else ""
             }
             val area = json.getJSONObject("nearest_area").let {
                 if (it.has("0")) it.getJSONObject("0") else it
             }
             val areaName = area.getJSONArray("areaName").let {
-                if (it.has(0)) it.getJSONObject(0).optString("value", query) else query
+                if (it.length() > 0) it.getJSONObject(0).optString("value", query) else query
             }
             val country = area.getJSONArray("country").let {
-                if (it.has(0)) it.getJSONObject(0).optString("value", "") else ""
+                if (it.length() > 0) it.getJSONObject(0).optString("value", "") else ""
             }
             CommandResult.ok(
                 "$desc, $tempC°C (feels like $feelsLike°C) in $areaName, $country. Humidity: $humidity%, Wind: ${windKmph}km/h",
-                "temp_c" to tempC,
-                "feels_like_c" to feelsLike,
-                "humidity" to humidity,
-                "wind_kmph" to windKmph,
-                "description" to desc,
-                "city" to areaName,
-                "country" to country,
-                "query" to query
+                mapOf(
+                    "temp_c" to tempC,
+                    "feels_like_c" to feelsLike,
+                    "humidity" to humidity,
+                    "wind_kmph" to windKmph,
+                    "description" to desc,
+                    "city" to areaName,
+                    "country" to country,
+                    "query" to query
+                )
             )
         } catch (e: Exception) {
             JarviceLogger.e(COMPONENT, "getWeather", "Error: ${e.message}", e)

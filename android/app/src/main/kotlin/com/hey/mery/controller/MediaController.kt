@@ -8,7 +8,7 @@ import android.view.KeyEvent
 import com.hey.mery.data.CommandResult
 import com.hey.mery.util.JarviceLogger
 
-class MediaController(context: Context) {
+class MediaController(private val context: Context) {
 
     companion object {
         private const val COMPONENT = "MediaController"

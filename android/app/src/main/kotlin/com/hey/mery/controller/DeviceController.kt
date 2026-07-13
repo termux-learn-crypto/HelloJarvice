@@ -22,12 +22,14 @@ class DeviceController(private val context: Context) {
 
         return CommandResult.ok(
             "Device info",
-            "manufacturer" to Build.MANUFACTURER,
-            "model" to Build.MODEL,
-            "sdkVersion" to Build.VERSION.SDK_INT,
-            "releaseVersion" to Build.VERSION.RELEASE,
-            "batteryLevel" to batteryLevel,
-            "isCharging" to isCharging
+            mapOf(
+                "manufacturer" to Build.MANUFACTURER,
+                "model" to Build.MODEL,
+                "sdkVersion" to Build.VERSION.SDK_INT,
+                "releaseVersion" to Build.VERSION.RELEASE,
+                "batteryLevel" to batteryLevel,
+                "isCharging" to isCharging
+            )
         )
     }
 
