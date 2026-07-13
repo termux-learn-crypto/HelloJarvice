@@ -27,10 +27,9 @@ jobs:
       - name: Generate keystore and key.properties
         run: |
           STORE_PASS="jarvice$(openssl rand -hex 8)"
-          KEY_PASS="jarvice$(openssl rand -hex 8)"
-          keytool -genkeypair -v -keystore android/hello-jarvice.jks -alias jarvice -keyalg RSA -keysize 2048 -validity 10000 -storepass "$STORE_PASS" -keypass "$KEY_PASS" -dname "CN=HeyMery, OU=Dev, O=HeyMery, L=Delhi, ST=Delhi, C=IN"
+          keytool -genkeypair -v -storetype JKS -keystore android/hello-jarvice.jks -alias jarvice -keyalg RSA -keysize 2048 -validity 10000 -storepass "$STORE_PASS" -keypass "$STORE_PASS" -dname "CN=HeyMery, OU=Dev, O=HeyMery, L=Delhi, ST=Delhi, C=IN"
           printf 'storePassword=%s\n' "$STORE_PASS" > android/key.properties
-          printf 'keyPassword=%s\n' "$KEY_PASS" >> android/key.properties
+          printf 'keyPassword=%s\n' "$STORE_PASS" >> android/key.properties
           printf 'keyAlias=jarvice\n' >> android/key.properties
           printf 'storeFile=hello-jarvice.jks\n' >> android/key.properties
 
