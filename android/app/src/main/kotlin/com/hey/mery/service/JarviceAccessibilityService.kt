@@ -217,11 +217,7 @@ class JarviceAccessibilityService : AccessibilityService() {
     private fun pressEnterKey(): Boolean {
         val rootNode = rootInActiveWindow ?: return false
         val focused = findFocusedNode(rootNode) ?: return false
-        val bundle = Bundle()
-        val event = android.view.KeyEvent(android.os.SystemClock.uptimeMillis(), android.os.SystemClock.uptimeMillis(), android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_ENTER, 0)
-        bundle.putParcelable(AccessibilityNodeInfo.ACTION_ARGUMENT_KEY_EVENT, event)
-        return focused.performAction(AccessibilityNodeInfo.ACTION_PRESS_AND_HOLD, bundle) ||
-               focused.performAction(AccessibilityNodeInfo.ACTION_CLICK)
+        return focused.performAction(AccessibilityNodeInfo.ACTION_CLICK)
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
