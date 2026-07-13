@@ -71,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     try {
-      await _tts.speak('Namaste, main Jarvis hoon. Kaise madad kar sakta hoon?');
+      await _tts.speakAndWait('Namaste, main Jarvis hoon. Kaise madad kar sakta hoon?');
     } catch (e) {
       debugPrint('TTS speak failed: $e');
     }
@@ -123,6 +123,8 @@ class _HomeScreenState extends State<HomeScreen> {
       _statusMessage = 'Sun raha hoon...';
     });
 
+    await _tts.stop();
+
     if (_wakeWordActive) {
       await _wakeWord.pauseListening();
       await Future.delayed(const Duration(milliseconds: 500));
@@ -171,9 +173,11 @@ class _HomeScreenState extends State<HomeScreen> {
     _addConversation(text, reply, false);
     setState(() => _statusMessage = '');
 
-    await _tts.speak(reply);
+    await _tts.speakAndWait(reply);
 
-    setState(() => _processing = false);
+    if (mounted) {
+      setState(() => _processing = false);
+    }
 
     if (_wakeWordActive) {
       await _wakeWord.resumeListening();

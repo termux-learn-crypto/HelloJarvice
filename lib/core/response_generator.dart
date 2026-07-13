@@ -6,6 +6,7 @@ class ResponseGenerator {
 
   static final _successResponses = <String, List<String>>{
     'OPEN_APPLICATION': ['%s khol diya.', '%s shuru kar diya.', 'Ye lo, %s open hai.'],
+    'GREETING': ['Haan boliye, sun raha hoon.', 'Ji, batao kya karna hai?', 'Haan, bolo.', 'Sun raha hoon, boliye.', 'Haan ji, kya kaam hai?'],
     'CLOSE_APPLICATION': ['%s band kar diya.', '%s ko close kar diya.', '%s khattam ho gaya.'],
     'SET_ALARM': ['Alarm set ho gaya %s baje.', '%s ka alarm laga diya.', 'Theek hai, %s baje alarm bajega.'],
     'SET_TIMER': ['Timer set ho gaya %s ke liye.', '%s minute ka timer shuru.', 'Timer lag gaya %s minutes.'],

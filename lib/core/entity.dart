@@ -281,7 +281,7 @@ class EntityExtractor {
       final m = p.firstMatch(lower);
       if (m != null) {
         var name = m.group(1)?.trim() ?? '';
-        name = name.replaceAll(RegExp(r'\b(please|mere liye|ek kaam karo|hey jarvice|jarvice|abhi|jaldi|zara|na|yaar|theek hai|kar do|karo)\b'), '').trim();
+        name = name.replaceAll(RegExp(r'\b(please|mere liye|ek kaam karo|hey jarvis|jarvis|hey jarvice|jarvice|abhi|jaldi|zara|na|yaar|theek hai|kar do|karo)\b'), '').trim();
         if (name.isNotEmpty && name.length > 1 && !_isStopWord(name)) {
           return name[0].toUpperCase() + name.substring(1);
         }
@@ -299,7 +299,7 @@ class EntityExtractor {
       final m = p.firstMatch(text.toLowerCase());
       if (m != null) {
         var msg = m.group(1)?.trim() ?? '';
-        msg = msg.replaceAll(RegExp(r'\b(please|mere liye|ek kaam karo|hey jarvice|jarvice|abhi|jaldi|zara|na|yaar|theek hai|kar do|karo)\b'), '').trim();
+        msg = msg.replaceAll(RegExp(r'\b(please|mere liye|ek kaam karo|hey jarvis|jarvis|hey jarvice|jarvice|abhi|jaldi|zara|na|yaar|theek hai|kar do|karo)\b'), '').trim();
         if (msg.isNotEmpty) return msg;
       }
     }

@@ -6,6 +6,7 @@ class SttService {
   bool _available = false;
   bool _listening = false;
   String _lastError = '';
+  String _selectedLocale = 'en_US';
 
   Future<bool> initialize() async {
     try {
@@ -17,11 +18,32 @@ class SttService {
           debugPrint('STT init error: ${error.errorMsg} (perm: ${error.permanent})');
         },
       );
+      if (_available) {
+        _selectedLocale = await _findBestLocale();
+      }
     } catch (e) {
       debugPrint('STT initialize exception: $e');
       _available = false;
     }
     return _available;
+  }
+
+  Future<String> _findBestLocale() async {
+    try {
+      final locales = await _speech.locales();
+      final codes = locales.map((l) => l.localeId).toList();
+
+      for (final code in ['hi_IN', 'hi-IN']) {
+        if (codes.contains(code)) return code;
+      }
+      for (final code in ['en_IN', 'en-US', 'en_US']) {
+        if (codes.contains(code)) return code;
+      }
+      if (codes.isNotEmpty) return codes.first;
+    } catch (e) {
+      debugPrint('STT locale detection failed: $e');
+    }
+    return 'en_US';
   }
 
   Future<String> listen({String? localeId, void Function(String)? onLiveResult}) async {
@@ -38,7 +60,7 @@ class SttService {
     String result = '';
     _listening = true;
 
-    String selectedLocale = localeId ?? _detectLocale();
+    String selectedLocale = localeId ?? _selectedLocale;
 
     try {
       final options = stt.SpeechListenOptions(
@@ -56,13 +78,12 @@ class SttService {
           }
         },
         listenOptions: options,
-        listenFor: const Duration(seconds: 8),
       );
 
       await Future.delayed(const Duration(seconds: 8));
       await stopListening();
 
-      if (result.isEmpty && selectedLocale == 'hi_IN') {
+      if (result.isEmpty && selectedLocale.startsWith('hi')) {
         return await listen(localeId: 'en_US', onLiveResult: onLiveResult);
       }
     } catch (e) {
@@ -72,10 +93,6 @@ class SttService {
     }
 
     return result;
-  }
-
-  String _detectLocale() {
-    return 'hi_IN';
   }
 
   Future<void> stopListening() async {

@@ -161,7 +161,7 @@ class SemanticInterpreter {
     'raat': 'night', 'abhi': 'now', 'jaldi': 'quickly',
     'please': '', 'yaar': '', 'na': '', 'theek hai': '',
     'ek kaam karo': '', 'mere liye': '', 'kar do': '', 'karo': '',
-    'hey jarvice': '', 'jarvice': '',
+    'hey jarvis': '', 'jarvis': '', 'hey jarvice': '', 'jarvice': '',
   };
 
   String normalizeHinglish(String text) {
@@ -173,6 +173,11 @@ class SemanticInterpreter {
     return normalized;
   }
 
+  static final _greetingPatterns = RegExp(
+    r'^(hi|hello|hey|namaste|namaskar|good morning|good evening|good night|sup|kaise ho|kaise hain|kya haal|kaise hai|bolo|haan|ji|sunao|suno|bol|hey jarvis)$',
+    caseSensitive: false,
+  );
+
   List<Goal> interpret(String text) {
     final normalized = normalizeHinglish(text);
     final entities = EntityExtractor.extract(text);
@@ -182,6 +187,11 @@ class SemanticInterpreter {
     }
 
     final goals = <Goal>[];
+
+    if (normalized.isEmpty || _greetingPatterns.hasMatch(normalized)) {
+      goals.add(Goal(operation: Operation.open, targetCategory: CapabilityCategory.application, targetName: 'GREETING', entities: {'text': text}));
+      return goals;
+    }
 
     _interpretVolume(normalized, entityMap, goals);
     _interpretAccessibility(normalized, goals);
