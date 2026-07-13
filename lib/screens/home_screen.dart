@@ -56,9 +56,13 @@ class _HomeScreenState extends State<HomeScreen> {
       bool sttReady = await _stt.initialize();
       if (!sttReady && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Speech recognition available nahi hai. Device check karein.'),
-            duration: Duration(seconds: 4),
+          SnackBar(
+            content: Text(
+              _stt.lastError.isNotEmpty
+                  ? _stt.lastError
+                  : 'Speech recognition available nahi hai. Device check karein.',
+            ),
+            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -133,11 +137,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (text.isEmpty) {
+      final errorMsg = _stt.lastError.isNotEmpty
+          ? _stt.lastError
+          : 'Kuch suna nahi. Phir se boliye.';
       setState(() {
         _isListening = false;
         _processing = false;
         _liveText = '';
-        _statusMessage = 'Kuch suna nahi. Phir se boliye.';
+        _statusMessage = errorMsg;
       });
       if (_wakeWordActive) {
         await _wakeWord.resumeListening();
