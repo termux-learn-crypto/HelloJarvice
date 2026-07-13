@@ -56,7 +56,7 @@ class SttService {
           }
         },
         listenOptions: options,
-        cancelFor: const Duration(seconds: 8),
+        listenFor: const Duration(seconds: 8),
       );
 
       await Future.delayed(const Duration(seconds: 8));
