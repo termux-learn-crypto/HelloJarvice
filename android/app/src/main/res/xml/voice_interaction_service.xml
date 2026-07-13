@@ -2,8 +2,5 @@
 <voice-interaction-service
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:sessionService="com.hey.mery.service.JarviceSessionService"
-    android:interactionService="com.hey.mery.service.JarviceInteractionService"
     android:settingsActivity="com.hey.mery.MainActivity"
-    android:supportsAssist="true"
-    android:supportsLaunchVoiceQueryFromAssistant="true"
-    android:supportsLaunchVoiceQueryFromSearchUi="true" />
+    android:supportsAssist="true" />
