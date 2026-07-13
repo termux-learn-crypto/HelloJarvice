@@ -11,7 +11,7 @@ Future<void> main() async {
 
   await SentryFlutter.init(
     (options) {
-      options.dsn = _dsn.isNotEmpty ? _dsn : null;
+      options.dsn = _dsn.isNotEmpty ? _dsn : '';
       options.tracesSampleRate = 0.2;
     },
     appRunner: () => runApp(const MyApp()),
