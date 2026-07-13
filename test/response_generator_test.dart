@@ -35,9 +35,10 @@ void main() {
     });
 
     test('generates clarification for contactName', () {
+      final validResponses = ['Kiska naam batao?', 'Kaun hai ye?', 'Naam toh batao.'];
       final response = ResponseGenerator.instance.generateClarification('contactName');
       expect(response, isNotEmpty);
-      expect(response.toLowerCase(), contains('naam'));
+      expect(validResponses.contains(response), isTrue);
     });
 
     test('generates clarification for query', () {
