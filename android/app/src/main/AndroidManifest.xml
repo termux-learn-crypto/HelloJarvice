@@ -62,24 +62,7 @@
             android:foregroundServiceType="microphone"
             android:exported="false" />
 
-        <!-- Voice Interaction Service (Assistant Role) -->
-        <service
-            android:name="com.hey.mery.service.JarviceInteractionService"
-            android:permission="android.permission.BIND_VOICE_INTERACTION"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.service.voice.VoiceInteractionService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.service.voice"
-                android:resource="@xml/voice_interaction_service" />
-        </service>
 
-        <!-- Voice Interaction Session Service -->
-        <service
-            android:name="com.hey.mery.service.JarviceSessionService"
-            android:permission="android.permission.BIND_VOICE_INTERACTION"
-            android:exported="false" />
 
         <!-- Accessibility Service -->
         <service
