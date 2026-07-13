@@ -26,7 +26,6 @@ class JarviceAccessibilityService : AccessibilityService() {
 
     private var methodChannel: MethodChannel? = null
     private val executor = Executors.newSingleThreadExecutor()
-    private var currentWindowId: Int = -1
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -221,9 +220,6 @@ class JarviceAccessibilityService : AccessibilityService() {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        event?.let {
-            currentWindowId = it.windowId
-        }
     }
 
     override fun onInterrupt() {

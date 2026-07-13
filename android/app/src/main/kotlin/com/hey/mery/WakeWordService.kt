@@ -47,6 +47,7 @@ class WakeWordService : Service() {
     private var methodChannel: MethodChannel? = null
     private var audioExecutor: ExecutorService? = null
     private val micLock = ReentrantLock()
+    @Volatile
     private var currentState = WakeWordState.STOPPED
 
     override fun onCreate() {
@@ -105,7 +106,7 @@ class WakeWordService : Service() {
             }
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
                 != PackageManager.PERMISSION_GRANTED
             ) {

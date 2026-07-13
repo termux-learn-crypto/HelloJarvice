@@ -25,7 +25,17 @@ class ReminderBootReceiver : BroadcastReceiver() {
         for ((key, value) in prefs.all) {
             val data = value.toString()
             if (data.contains("active=true")) {
-                JarviceLogger.i(TAG, "rescheduleReminders", "Re-scheduling: $key")
+                try {
+                    val hour = Regex("hour=(\\d+)").find(data)?.groupValues?.get(1)?.toIntOrNull()
+                    val minute = Regex("minute=(\\d+)").find(data)?.groupValues?.get(1)?.toIntOrNull()
+                    val title = Regex("title=([^,}]+)").find(data)?.groupValues?.get(1)?.trim() ?: key
+                    if (hour != null && minute != null) {
+                        controller.createReminder(title, hour, minute, null, null)
+                        JarviceLogger.i(TAG, "rescheduleReminders", "Re-scheduled: $key at $hour:$minute")
+                    }
+                } catch (e: Exception) {
+                    JarviceLogger.e(TAG, "rescheduleReminders", "Failed to reschedule $key: ${e.message}", e)
+                }
             }
         }
     }

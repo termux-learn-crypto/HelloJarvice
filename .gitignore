@@ -52,6 +52,7 @@ android/key.properties
 
 # Built APKs
 *.apk
+*.aab
 
 # Environment
 .env*

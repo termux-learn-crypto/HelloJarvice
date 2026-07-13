@@ -33,116 +33,121 @@ class CommandRouter {
   static const MethodChannel systemChannel = MethodChannel('com.hey.mery/system');
   static const MethodChannel accessibilityChannel = MethodChannel('com.hey.mery/accessibility');
   static const MethodChannel notificationChannel = MethodChannel('com.hey.mery/notifications');
-  static const MethodChannel _systemChannel = MethodChannel('com.hey.mery/system');
-  static const MethodChannel _accessibilityChannel = MethodChannel('com.hey.mery/accessibility');
-  static const MethodChannel _notificationChannel = MethodChannel('com.hey.mery/notifications');
 
   static Future<NativeResult> call(MethodChannel channel, String method, [Map<String, dynamic>? args]) async {
-    try {
-      final result = await channel.invokeMethod(method, args);
-      if (result is Map) {
-        return NativeResult.fromMap(result);
+    const maxRetries = 2;
+    for (var attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        final result = await channel.invokeMethod(method, args);
+        if (result is Map) {
+          return NativeResult.fromMap(result);
+        }
+        return NativeResult(success: true, message: result?.toString() ?? 'Done');
+      } on PlatformException catch (e) {
+        if (attempt < maxRetries - 1) {
+          await Future.delayed(const Duration(milliseconds: 500));
+          continue;
+        }
+        return NativeResult(
+          success: false,
+          message: 'Command failed: ${e.message}',
+          errorCode: 'PLATFORM_ERROR',
+        );
+      } catch (e) {
+        return NativeResult(
+          success: false,
+          message: 'Unexpected error: $e',
+          errorCode: 'UNKNOWN_ERROR',
+        );
       }
-      return NativeResult(success: true, message: result?.toString() ?? 'Done');
-    } on PlatformException catch (e) {
-      return NativeResult(
-        success: false,
-        message: 'Command failed: ${e.message}',
-        errorCode: 'PLATFORM_ERROR',
-      );
-    } catch (e) {
-      return NativeResult(
-        success: false,
-        message: 'Unexpected error: $e',
-        errorCode: 'UNKNOWN_ERROR',
-      );
     }
+    return NativeResult(success: false, message: 'Max retries exceeded', errorCode: 'MAX_RETRIES');
   }
 
   // System
-  static Future<NativeResult> toggleWiFi(bool on) => call(_systemChannel, 'toggleWifi', {'state': on});
-  static Future<NativeResult> toggleBluetooth(bool on) => call(_systemChannel, 'toggleBluetooth', {'state': on});
-  static Future<NativeResult> toggleFlashlight(bool on) => call(_systemChannel, 'toggleFlashlight', {'state': on});
-  static Future<NativeResult> torchOn() => call(_systemChannel, 'torchOn');
-  static Future<NativeResult> torchOff() => call(_systemChannel, 'torchOff');
-  static Future<NativeResult> torchToggle() => call(_systemChannel, 'torchToggle');
+  static Future<NativeResult> toggleWiFi(bool on) => call(systemChannel, 'toggleWifi', {'state': on});
+  static Future<NativeResult> toggleBluetooth(bool on) => call(systemChannel, 'toggleBluetooth', {'state': on});
+  static Future<NativeResult> toggleFlashlight(bool on) => call(systemChannel, 'toggleFlashlight', {'state': on});
+  static Future<NativeResult> torchOn() => call(systemChannel, 'torchOn');
+  static Future<NativeResult> torchOff() => call(systemChannel, 'torchOff');
+  static Future<NativeResult> torchToggle() => call(systemChannel, 'torchToggle');
 
   // App
-  static Future<NativeResult> launchApp(String name) => call(_systemChannel, 'launchApp', {'package': name});
-  static Future<NativeResult> searchApps(String query) => call(_systemChannel, 'searchApps', {'query': query});
+  static Future<NativeResult> launchApp(String name) => call(systemChannel, 'launchApp', {'package': name});
+  static Future<NativeResult> searchApps(String query) => call(systemChannel, 'searchApps', {'query': query});
 
   // Audio
   static Future<NativeResult> volumeUp({String stream = 'music'}) =>
-      call(_systemChannel, 'volumeUp', {'stream': stream});
+      call(systemChannel, 'volumeUp', {'stream': stream});
   static Future<NativeResult> volumeDown({String stream = 'music'}) =>
-      call(_systemChannel, 'volumeDown', {'stream': stream});
+      call(systemChannel, 'volumeDown', {'stream': stream});
   static Future<NativeResult> setVolume(int percent, {String stream = 'music'}) =>
-      call(_systemChannel, 'setVolume', {'percent': percent, 'stream': stream});
+      call(systemChannel, 'setVolume', {'percent': percent, 'stream': stream});
   static Future<NativeResult> muteVolume({String stream = 'music'}) =>
-      call(_systemChannel, 'muteVolume', {'stream': stream});
+      call(systemChannel, 'muteVolume', {'stream': stream});
   static Future<NativeResult> unmuteVolume({String stream = 'music'}) =>
-      call(_systemChannel, 'unmuteVolume', {'stream': stream});
+      call(systemChannel, 'unmuteVolume', {'stream': stream});
   static Future<NativeResult> maxVolume({String stream = 'music'}) =>
-      call(_systemChannel, 'maxVolume', {'stream': stream});
+      call(systemChannel, 'maxVolume', {'stream': stream});
   static Future<NativeResult> getVolumeInfo({String stream = 'music'}) =>
-      call(_systemChannel, 'getVolumeInfo', {'stream': stream});
+      call(systemChannel, 'getVolumeInfo', {'stream': stream});
 
   // Media
-  static Future<NativeResult> mediaPlay() => call(_systemChannel, 'mediaPlay');
-  static Future<NativeResult> mediaPause() => call(_systemChannel, 'mediaPause');
-  static Future<NativeResult> mediaStop() => call(_systemChannel, 'mediaStop');
-  static Future<NativeResult> mediaNext() => call(_systemChannel, 'mediaNext');
-  static Future<NativeResult> mediaPrevious() => call(_systemChannel, 'mediaPrevious');
-  static Future<NativeResult> getPlaybackState() => call(_systemChannel, 'getPlaybackState');
+  static Future<NativeResult> mediaPlay() => call(systemChannel, 'mediaPlay');
+  static Future<NativeResult> mediaPause() => call(systemChannel, 'mediaPause');
+  static Future<NativeResult> mediaStop() => call(systemChannel, 'mediaStop');
+  static Future<NativeResult> mediaNext() => call(systemChannel, 'mediaNext');
+  static Future<NativeResult> mediaPrevious() => call(systemChannel, 'mediaPrevious');
+  static Future<NativeResult> getPlaybackState() => call(systemChannel, 'getPlaybackState');
 
   // Call
-  static Future<NativeResult> makeCall(String target) => call(_systemChannel, 'makeCall', {'target': target});
+  static Future<NativeResult> makeCall(String target) => call(systemChannel, 'makeCall', {'target': target});
   static Future<NativeResult> lookupContact(String query) =>
-      call(_systemChannel, 'lookupContact', {'query': query});
+      call(systemChannel, 'lookupContact', {'query': query});
   static Future<NativeResult> dialNumber(String number) =>
-      call(_systemChannel, 'dialNumber', {'number': number});
+      call(systemChannel, 'dialNumber', {'number': number});
 
   // SMS
   static Future<NativeResult> composeSms(String recipient, String message) =>
-      call(_systemChannel, 'composeSms', {'recipient': recipient, 'message': message});
+      call(systemChannel, 'composeSms', {'recipient': recipient, 'message': message});
 
   // Alarm
   static Future<NativeResult> setAlarm(int hour, int minute, {String label = 'Jarvice Alarm'}) =>
-      call(_systemChannel, 'setAlarm', {'hour': hour, 'minute': minute, 'label': label});
+      call(systemChannel, 'setAlarm', {'hour': hour, 'minute': minute, 'label': label});
   static Future<NativeResult> setTimer(int minutes, {String label = 'Jarvice Timer'}) =>
-      call(_systemChannel, 'setTimer', {'minutes': minutes, 'label': label});
-  static Future<NativeResult> showAlarms() => call(_systemChannel, 'showAlarms');
+      call(systemChannel, 'setTimer', {'minutes': minutes, 'label': label});
+  static Future<NativeResult> showAlarms() => call(systemChannel, 'showAlarms');
   static Future<NativeResult> parseAlarmTime(String text) =>
-      call(_systemChannel, 'parseAlarmTime', {'text': text});
+      call(systemChannel, 'parseAlarmTime', {'text': text});
   static Future<NativeResult> parseTimerMinutes(String text) =>
-      call(_systemChannel, 'parseTimerMinutes', {'text': text});
+      call(systemChannel, 'parseTimerMinutes', {'text': text});
 
   // Settings
   static Future<NativeResult> openSettings(String section) =>
-      call(_systemChannel, 'openSettings', {'section': section});
+      call(systemChannel, 'openSettings', {'section': section});
 
   // Device
-  static Future<NativeResult> getDeviceInfo() => call(_systemChannel, 'getDeviceInfo');
-  static Future<NativeResult> getBatteryLevel() => call(_systemChannel, 'getBatteryLevel');
-  static Future<NativeResult> openBatterySettings() => call(_systemChannel, 'openBatterySettings');
-  static Future<NativeResult> checkBatteryOptimization() => call(_systemChannel, 'checkBatteryOptimization');
+  static Future<NativeResult> getDeviceInfo() => call(systemChannel, 'getDeviceInfo');
+  static Future<NativeResult> getBatteryLevel() => call(systemChannel, 'getBatteryLevel');
+  static Future<NativeResult> openBatterySettings() => call(systemChannel, 'openBatterySettings');
+  static Future<NativeResult> checkBatteryOptimization() => call(systemChannel, 'checkBatteryOptimization');
 
   // Accessibility
-  static Future<NativeResult> performBack() => call(_accessibilityChannel, 'performBack');
-  static Future<NativeResult> performHome() => call(_accessibilityChannel, 'performHome');
-  static Future<NativeResult> performRecents() => call(_accessibilityChannel, 'performRecents');
-  static Future<NativeResult> performNotifications() => call(_accessibilityChannel, 'performNotifications');
-  static Future<NativeResult> performQuickSettings() => call(_accessibilityChannel, 'performQuickSettings');
-  static Future<NativeResult> performScrollUp() => call(_accessibilityChannel, 'performScrollUp');
-  static Future<NativeResult> performScrollDown() => call(_accessibilityChannel, 'performScrollDown');
+  static Future<NativeResult> performBack() => call(accessibilityChannel, 'performBack');
+  static Future<NativeResult> performHome() => call(accessibilityChannel, 'performHome');
+  static Future<NativeResult> performRecents() => call(accessibilityChannel, 'performRecents');
+  static Future<NativeResult> performNotifications() => call(accessibilityChannel, 'performNotifications');
+  static Future<NativeResult> performQuickSettings() => call(accessibilityChannel, 'performQuickSettings');
+  static Future<NativeResult> performScrollUp() => call(accessibilityChannel, 'performScrollUp');
+  static Future<NativeResult> performScrollDown() => call(accessibilityChannel, 'performScrollDown');
   static Future<NativeResult> performClick(double x, double y) =>
-      call(_accessibilityChannel, 'performClick', {'x': x, 'y': y});
+      call(accessibilityChannel, 'performClick', {'x': x, 'y': y});
   static Future<NativeResult> performSwipe(double sx, double sy, double ex, double ey) =>
-      call(_accessibilityChannel, 'performSwipe', {'startX': sx, 'startY': sy, 'endX': ex, 'endY': ey});
-  static Future<NativeResult> getWindowHierarchy() => call(_accessibilityChannel, 'getWindowHierarchy');
+      call(accessibilityChannel, 'performSwipe', {'startX': sx, 'startY': sy, 'endX': ex, 'endY': ey});
+  static Future<NativeResult> getWindowHierarchy() => call(accessibilityChannel, 'getWindowHierarchy');
   static Future<NativeResult> isAccessibilityEnabled() async {
     try {
-      final result = await _accessibilityChannel.invokeMethod('isEnabled');
+      final result = await accessibilityChannel.invokeMethod('isEnabled');
       return NativeResult(success: true, message: result == true ? 'Enabled' : 'Disabled',
           data: {'enabled': result == true});
     } catch (e) {
@@ -152,14 +157,14 @@ class CommandRouter {
 
   // Notifications
   static Future<NativeResult> getRecentNotifications() =>
-      call(_notificationChannel, 'getRecentNotifications');
+      call(notificationChannel, 'getRecentNotifications');
   static Future<NativeResult> getNotificationsByApp(String packageName) =>
-      call(_notificationChannel, 'getNotificationsByApp', {'packageName': packageName});
+      call(notificationChannel, 'getNotificationsByApp', {'packageName': packageName});
   static Future<NativeResult> dismissNotification(String key) =>
-      call(_notificationChannel, 'dismissNotification', {'key': key});
+      call(notificationChannel, 'dismissNotification', {'key': key});
   static Future<NativeResult> isNotificationListenerEnabled() async {
     try {
-      final result = await _notificationChannel.invokeMethod('isEnabled');
+      final result = await notificationChannel.invokeMethod('isEnabled');
       return NativeResult(success: true, message: result == true ? 'Enabled' : 'Disabled',
           data: {'enabled': result == true});
     } catch (e) {
@@ -169,7 +174,7 @@ class CommandRouter {
 
   // Web/Time (Flutter-side, uses launchApp on native)
   static Future<NativeResult> searchGoogle(String query) =>
-      call(_systemChannel, 'searchGoogle', {'query': query});
+      call(systemChannel, 'searchGoogle', {'query': query});
   static Future<NativeResult> getCurrentTime() async {
     final now = DateTime.now();
     final h = now.hour.toString().padLeft(2, '0');
@@ -177,101 +182,101 @@ class CommandRouter {
     return NativeResult(success: true, message: 'Abhi $h:$m baj rahe hain');
   }
   static Future<NativeResult> openYouTube() =>
-      call(_systemChannel, 'launchApp', {'package': 'youtube'});
+      call(systemChannel, 'launchApp', {'package': 'youtube'});
   static Future<NativeResult> openYouTubeSearch(String query) =>
-      call(_systemChannel, 'searchYouTube', {'query': query});
+      call(systemChannel, 'searchYouTube', {'query': query});
 
   // Shizuku & Root (handled via system channel on native side)
-  static Future<NativeResult> getShizukuStatus() => call(_systemChannel, 'getShizukuStatus');
-  static Future<NativeResult> getRootStatus() => call(_systemChannel, 'getRootStatus');
+  static Future<NativeResult> getShizukuStatus() => call(systemChannel, 'getShizukuStatus');
+  static Future<NativeResult> getRootStatus() => call(systemChannel, 'getRootStatus');
 
   // Application (extended)
   static Future<NativeResult> closeApp(String package) =>
-      call(_systemChannel, 'closeApp', {'package': package});
+      call(systemChannel, 'closeApp', {'package': package});
   static Future<NativeResult> getForegroundApp() =>
-      call(_systemChannel, 'getForegroundApp');
+      call(systemChannel, 'getForegroundApp');
   static Future<NativeResult> openAppInfo(String package) =>
-      call(_systemChannel, 'openAppInfo', {'package': package});
+      call(systemChannel, 'openAppInfo', {'package': package});
   static Future<NativeResult> openAppNotificationSettings(String package) =>
-      call(_systemChannel, 'openAppNotificationSettings', {'package': package});
+      call(systemChannel, 'openAppNotificationSettings', {'package': package});
   static Future<NativeResult> openAppPermissionSettings(String package) =>
-      call(_systemChannel, 'openAppPermissionSettings', {'package': package});
+      call(systemChannel, 'openAppPermissionSettings', {'package': package});
   static Future<NativeResult> openDefaultAppSettings() =>
-      call(_systemChannel, 'openDefaultAppSettings');
+      call(systemChannel, 'openDefaultAppSettings');
   static Future<NativeResult> openUrl(String url) =>
-      call(_systemChannel, 'openUrl', {'url': url});
+      call(systemChannel, 'openUrl', {'url': url});
   static Future<NativeResult> openDeepLink(String uri) =>
-      call(_systemChannel, 'openDeepLink', {'uri': uri});
+      call(systemChannel, 'openDeepLink', {'uri': uri});
   static Future<NativeResult> shareText(String text) =>
-      call(_systemChannel, 'shareText', {'text': text});
+      call(systemChannel, 'shareText', {'text': text});
   static Future<NativeResult> shareFile(String path) =>
-      call(_systemChannel, 'shareFile', {'path': path});
+      call(systemChannel, 'shareFile', {'path': path});
 
   // Contact (extended)
   static Future<NativeResult> openContact(String name) =>
-      call(_systemChannel, 'openContact', {'name': name});
+      call(systemChannel, 'openContact', {'name': name});
   static Future<NativeResult> createContact(String name, {String phone = ''}) =>
-      call(_systemChannel, 'createContact', {'name': name, 'phone': phone});
+      call(systemChannel, 'createContact', {'name': name, 'phone': phone});
   static Future<NativeResult> openContactPicker() =>
-      call(_systemChannel, 'openContactPicker');
+      call(systemChannel, 'openContactPicker');
 
   // Call (extended)
   static Future<NativeResult> redialLast() =>
-      call(_systemChannel, 'redialLast');
+      call(systemChannel, 'redialLast');
   static Future<NativeResult> openDialer() =>
-      call(_systemChannel, 'openDialer');
+      call(systemChannel, 'openDialer');
 
   // WhatsApp
   static Future<NativeResult> openWhatsAppChat(String contact) =>
-      call(_systemChannel, 'openWhatsAppChat', {'contact': contact});
+      call(systemChannel, 'openWhatsAppChat', {'contact': contact});
   static Future<NativeResult> openWhatsAppChatById(String phone) =>
-      call(_systemChannel, 'openWhatsAppChatById', {'phone': phone});
+      call(systemChannel, 'openWhatsAppChatById', {'phone': phone});
   static Future<NativeResult> prepareWhatsAppMessage(String contact, String message) =>
-      call(_systemChannel, 'prepareWhatsAppMessage', {'contact': contact, 'message': message});
+      call(systemChannel, 'prepareWhatsAppMessage', {'contact': contact, 'message': message});
   static Future<NativeResult> whatsappAudioCall(String contact) =>
-      call(_systemChannel, 'whatsappAudioCall', {'contact': contact});
+      call(systemChannel, 'whatsappAudioCall', {'contact': contact});
   static Future<NativeResult> whatsappVideoCall(String contact) =>
-      call(_systemChannel, 'whatsappVideoCall', {'contact': contact});
+      call(systemChannel, 'whatsappVideoCall', {'contact': contact});
   static Future<NativeResult> openWhatsAppCamera() =>
-      call(_systemChannel, 'openWhatsAppCamera');
+      call(systemChannel, 'openWhatsAppCamera');
 
   // SMS (extended)
   static Future<NativeResult> openSmsComposer({String recipient = ''}) =>
-      call(_systemChannel, 'openSmsComposer', {'recipient': recipient});
+      call(systemChannel, 'openSmsComposer', {'recipient': recipient});
 
   // Brightness (extended)
   static Future<NativeResult> increaseBrightness() =>
-      call(_systemChannel, 'increaseBrightness');
+      call(systemChannel, 'increaseBrightness');
   static Future<NativeResult> decreaseBrightness() =>
-      call(_systemChannel, 'decreaseBrightness');
+      call(systemChannel, 'decreaseBrightness');
   static Future<NativeResult> setAutoBrightness(bool enabled) =>
-      call(_systemChannel, 'setAutoBrightness', {'enabled': enabled});
+      call(systemChannel, 'setAutoBrightness', {'enabled': enabled});
 
   // Torch (extended)
   static Future<NativeResult> getTorchState() =>
-      call(_systemChannel, 'getTorchState');
+      call(systemChannel, 'getTorchState');
 
   // Media (extended)
   static Future<NativeResult> getCurrentMediaApp() =>
-      call(_systemChannel, 'getMediaApp');
+      call(systemChannel, 'getMediaApp');
   static Future<NativeResult> playMediaQuery(String query) =>
-      call(_systemChannel, 'playMediaQuery', {'query': query});
+      call(systemChannel, 'playMediaQuery', {'query': query});
 
   // Alarm (extended)
   static Future<NativeResult> dismissAlarm() =>
-      call(_systemChannel, 'dismissAlarm');
+      call(systemChannel, 'dismissAlarm');
   static Future<NativeResult> snoozeAlarm() =>
-      call(_systemChannel, 'snoozeAlarm');
+      call(systemChannel, 'snoozeAlarm');
 
   // Timer (extended)
   static Future<NativeResult> openTimer() =>
-      call(_systemChannel, 'openTimer');
+      call(systemChannel, 'openTimer');
   static Future<NativeResult> dismissTimer() =>
-      call(_systemChannel, 'dismissTimer');
+      call(systemChannel, 'dismissTimer');
 
   // Reminder
   static Future<NativeResult> createReminder(String title, {int? hour, int? minute, int? duration, String? relativeTime}) =>
-      call(_systemChannel, 'createReminder', {
+      call(systemChannel, 'createReminder', {
         'title': title,
         if (hour != null) 'hour': hour,
         if (minute != null) 'minute': minute,
@@ -279,87 +284,87 @@ class CommandRouter {
         if (relativeTime != null) 'relativeTime': relativeTime,
       });
   static Future<NativeResult> listReminders() =>
-      call(_systemChannel, 'listReminders');
+      call(systemChannel, 'listReminders');
 
   // WiFi (extended)
   static Future<NativeResult> getWifiState() =>
-      call(_systemChannel, 'getWifiState');
+      call(systemChannel, 'getWifiState');
   static Future<NativeResult> getConnectedWifi() =>
-      call(_systemChannel, 'getConnectedWifi');
+      call(systemChannel, 'getConnectedWifi');
 
   // Bluetooth (extended)
   static Future<NativeResult> getBluetoothState() =>
-      call(_systemChannel, 'getBluetoothState');
+      call(systemChannel, 'getBluetoothState');
   static Future<NativeResult> getBondedDevices() =>
-      call(_systemChannel, 'getBondedDevices');
+      call(systemChannel, 'getBondedDevices');
 
   // Network
   static Future<NativeResult> getNetworkState() =>
-      call(_systemChannel, 'getNetworkState');
+      call(systemChannel, 'getNetworkState');
 
   // Location
   static Future<NativeResult> getCurrentLocation() =>
-      call(_systemChannel, 'getCurrentLocation');
+      call(systemChannel, 'getCurrentLocation');
   static Future<NativeResult> getLocationState() =>
-      call(_systemChannel, 'getLocationState');
+      call(systemChannel, 'getLocationState');
   static Future<NativeResult> navigateTo(String destination) =>
-      call(_systemChannel, 'navigateTo', {'destination': destination});
+      call(systemChannel, 'navigateTo', {'destination': destination});
   static Future<NativeResult> searchPlace(String query) =>
-      call(_systemChannel, 'searchPlace', {'query': query});
+      call(systemChannel, 'searchPlace', {'query': query});
 
   // Device (extended)
   static Future<NativeResult> getChargingState() =>
-      call(_systemChannel, 'getChargingState');
+      call(systemChannel, 'getChargingState');
   static Future<NativeResult> getStorageInfo() =>
-      call(_systemChannel, 'getStorageInfo');
+      call(systemChannel, 'getStorageInfo');
   static Future<NativeResult> getMemoryInfo() =>
-      call(_systemChannel, 'getMemoryInfo');
+      call(systemChannel, 'getMemoryInfo');
 
   // Screen Control
   static Future<NativeResult> wakeScreen() =>
-      call(_systemChannel, 'wakeScreen');
+      call(systemChannel, 'wakeScreen');
   static Future<NativeResult> keepScreenAwake(bool enabled) =>
-      call(_systemChannel, 'keepScreenAwake', {'enabled': enabled});
+      call(systemChannel, 'keepScreenAwake', {'enabled': enabled});
   static Future<NativeResult> getScreenState() =>
-      call(_systemChannel, 'getScreenState');
+      call(systemChannel, 'getScreenState');
 
   // Rotation
   static Future<NativeResult> getRotationState() =>
-      call(_systemChannel, 'getRotationState');
+      call(systemChannel, 'getRotationState');
   static Future<NativeResult> setAutoRotate(bool enabled) =>
-      call(_systemChannel, 'setAutoRotate', {'enabled': enabled});
+      call(systemChannel, 'setAutoRotate', {'enabled': enabled});
   static Future<NativeResult> setOrientation(String orientation) =>
-      call(_systemChannel, 'setOrientation', {'orientation': orientation});
+      call(systemChannel, 'setOrientation', {'orientation': orientation});
 
   // DND
   static Future<NativeResult> getDndState() =>
-      call(_systemChannel, 'getDndState');
+      call(systemChannel, 'getDndState');
   static Future<NativeResult> setDnd(bool enabled) =>
-      call(_systemChannel, 'setDnd', {'enabled': enabled});
+      call(systemChannel, 'setDnd', {'enabled': enabled});
 
   // Clipboard
   static Future<NativeResult> copyToClipboard(String text) =>
-      call(_systemChannel, 'copyToClipboard', {'text': text});
+      call(systemChannel, 'copyToClipboard', {'text': text});
   static Future<NativeResult> getClipboardText() =>
-      call(_systemChannel, 'getClipboardText');
+      call(systemChannel, 'getClipboardText');
   static Future<NativeResult> clearClipboard() =>
-      call(_systemChannel, 'clearClipboard');
+      call(systemChannel, 'clearClipboard');
 
   // Camera
   static Future<NativeResult> openCamera({String facing = 'rear', String mode = 'photo'}) =>
-      call(_systemChannel, 'openCamera', {'facing': facing, 'mode': mode});
+      call(systemChannel, 'openCamera', {'facing': facing, 'mode': mode});
 
   // File
   static Future<NativeResult> openFile(String path) =>
-      call(_systemChannel, 'openFile', {'path': path});
+      call(systemChannel, 'openFile', {'path': path});
   static Future<NativeResult> openDownloads() =>
-      call(_systemChannel, 'openDownloads');
+      call(systemChannel, 'openDownloads');
   static Future<NativeResult> openDocumentPicker() =>
-      call(_systemChannel, 'openDocumentPicker');
+      call(systemChannel, 'openDocumentPicker');
 
   // Weather
   static Future<NativeResult> getWeather({String? city}) =>
-      call(_systemChannel, 'getWeather', city != null ? {'city': city} : null);
+      call(systemChannel, 'getWeather', city != null ? {'city': city} : null);
   static Future<NativeResult> getWeatherForecast({String? city}) =>
-      call(_systemChannel, 'getWeatherForecast', city != null ? {'city': city} : null);
+      call(systemChannel, 'getWeatherForecast', city != null ? {'city': city} : null);
 }

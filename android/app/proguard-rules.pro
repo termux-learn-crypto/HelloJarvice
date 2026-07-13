@@ -24,6 +24,15 @@
 -keepattributes Signature
 -keepattributes *Annotation*
 
+# Google Play Services
+-keep class com.google.android.gms.location.** { *; }
+-keep class com.google.android.gms.tasks.** { *; }
+-dontwarn com.google.android.gms.**
+
+# Shizuku
+-keep class moe.shizuku.** { *; }
+-dontwarn moe.shizuku.**
+
 # Keep MethodChannel names
 -keep class com.hey.mery.controller.** { *; }
 -keep class com.hey.mery.service.** { *; }

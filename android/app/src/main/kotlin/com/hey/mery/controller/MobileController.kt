@@ -1004,20 +1004,21 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
             val fusedClient = com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(context)
             @Suppress("MissingPermission")
             val locationTask = fusedClient.lastLocation
-            locationTask.addOnSuccessListener { location ->
-                if (location != null) {
-                    val lat = location.latitude
-                    val lng = location.longitude
-                    JarviceLogger.i(COMPONENT, "getCurrentLocation", "Got location: $lat, $lng")
-                } else {
-                    JarviceLogger.w(COMPONENT, "getCurrentLocation", "Last location is null")
-                }
+            val location = com.google.android.gms.tasks.Tasks.await(locationTask, 5, java.util.concurrent.TimeUnit.SECONDS)
+            if (location != null) {
+                val lat = location.latitude
+                val lng = location.longitude
+                JarviceLogger.i(COMPONENT, "getCurrentLocation", "Got location: $lat, $lng")
+                CommandResult.ok(
+                    "Location mil gayi: $lat, $lng",
+                    mapOf("latitude" to lat, "longitude" to lng)
+                )
+            } else {
+                JarviceLogger.w(COMPONENT, "getCurrentLocation", "Last location is null")
+                CommandResult.error("Location nahi mil payi. GPS enable karo.", "LOCATION_NULL")
             }
-            locationTask.addOnFailureListener { e ->
-                JarviceLogger.e(COMPONENT, "getCurrentLocation", "Failed: ${e.message}", e)
-            }
-            CommandResult.ok("Location fetch ho raha hai")
         } catch (e: Exception) {
+            JarviceLogger.e(COMPONENT, "getCurrentLocation", "Failed: ${e.message}", e)
             CommandResult.error("Location nahi mil payi: ${e.message}")
         }
     }
@@ -1128,7 +1129,6 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
     private fun wakeScreen(): CommandResult {
         return try {
             val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-            @Suppress("DEPRECATION")
             val isScreenOn = powerManager.isInteractive
             if (!isScreenOn) {
                 val window = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -1176,7 +1176,6 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
     private fun getScreenState(): CommandResult {
         return try {
             val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-            @Suppress("DEPRECATION")
             val isOn = powerManager.isInteractive
             CommandResult.ok(
                 if (isOn) "Screen on hai" else "Screen band hai",
@@ -1452,9 +1451,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
             val response = connection.inputStream.bufferedReader().readText()
             connection.disconnect()
             val json = JSONObject(response)
-            val current = json.getJSONObject("current_condition").let {
-                if (it.has("0")) it.getJSONObject("0") else it
-            }
+            val current = json.getJSONArray("current_condition").getJSONObject(0)
             val tempC = current.optString("temp_C", "")
             val feelsLike = current.optString("FeelsLikeC", "")
             val humidity = current.optString("humidity", "")
@@ -1462,9 +1459,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
             val desc = current.getJSONArray("weatherDesc").let {
                 if (it.length() > 0) it.getJSONObject(0).optString("value", "") else ""
             }
-            val area = json.getJSONObject("nearest_area").let {
-                if (it.has("0")) it.getJSONObject("0") else it
-            }
+            val area = json.getJSONArray("nearest_area").getJSONObject(0)
             val areaName = area.getJSONArray("areaName").let {
                 if (it.length() > 0) it.getJSONObject(0).optString("value", query) else query
             }

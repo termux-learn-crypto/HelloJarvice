@@ -16,7 +16,7 @@ class MediaController(private val context: Context) {
 
     private val mediaSessionManager = context.getSystemService(Context.MEDIA_SESSION_SERVICE) as? MediaSessionManager
 
-    private fun getActiveController(): MediaController? {
+    private fun getActiveController(): android.media.session.MediaController? {
         return try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 val sessions = mediaSessionManager?.getActiveSessions(null)

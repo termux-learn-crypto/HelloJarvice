@@ -13,7 +13,7 @@ class RootController {
     }
 
     fun isAvailable(): Boolean {
-        if (rootAvailable != null) return rootAvailable!!
+        if (rootAvailable != null) return rootAvailable ?: false
 
         rootAvailable = try {
             val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "id"))
@@ -27,7 +27,7 @@ class RootController {
             false
         }
 
-        return rootAvailable!!
+        return rootAvailable ?: false
     }
 
     fun execute(command: String): CommandResult {

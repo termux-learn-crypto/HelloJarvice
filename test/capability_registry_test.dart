@@ -42,7 +42,7 @@ void main() {
       expect(caps.any((c) => c.id == 'GET_BATTERY_LEVEL'), isTrue);
     });
 
-    test('returns empty for unknown category', () {
+    test('returns capabilities for DND category', () {
       final caps = CapabilityRegistry.instance.getByCategory(CapabilityCategory.dnd);
       expect(caps, isNotEmpty); // DND is registered
     });
