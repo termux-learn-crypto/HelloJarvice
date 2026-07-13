@@ -1,6 +1,6 @@
 package com.hey.mery.controller
 
-import android.app.AlarmClock
+import android.provider.AlarmClock
 import android.content.Context
 import android.content.Intent
 import com.hey.mery.data.CommandResult

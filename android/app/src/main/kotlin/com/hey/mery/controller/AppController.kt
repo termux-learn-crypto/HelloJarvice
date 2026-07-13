@@ -53,12 +53,8 @@ class AppController(private val context: Context) {
             addCategory(Intent.CATEGORY_LAUNCHER)
         }
 
-        val resolveInfos: List<ResolveInfo> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            pm.queryIntentActivities(mainIntent, PackageManager.ResolveInfoFlagsOf(0))
-        } else {
-            @Suppress("DEPRECATION")
-            pm.queryIntentActivities(mainIntent, 0)
-        }
+        @Suppress("DEPRECATION")
+        val resolveInfos: List<ResolveInfo> = pm.queryIntentActivities(mainIntent, 0)
 
         val normalizedQuery = query.lowercase().trim()
         val matches = mutableListOf<AppInfo>()
@@ -136,7 +132,7 @@ class AppController(private val context: Context) {
     fun getForegroundApp(): CommandResult {
         return try {
             val am = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
-            val taskInfo = am.runningAppProcesses?.firstOrNull { it.importance == android.app.RunningAppProcessInfo.IMPORTANCE_FOREGROUND }
+            val taskInfo = am.runningAppProcesses?.firstOrNull { it.importance == android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND }
             val pkg = taskInfo?.processName?.split(":")?.firstOrNull() ?: "unknown"
             val pm = context.packageManager
             val label = try {

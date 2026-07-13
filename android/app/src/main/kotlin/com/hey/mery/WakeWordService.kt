@@ -20,6 +20,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineCache
 import io.flutter.plugin.common.MethodChannel
 import com.hey.mery.data.WakeWordState
+import com.hey.mery.util.JarviceLogger
 import com.hey.mery.wake_word.WakeWordEngine
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
