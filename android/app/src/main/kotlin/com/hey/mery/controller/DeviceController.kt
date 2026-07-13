@@ -38,7 +38,7 @@ class DeviceController(private val context: Context) {
         val batteryLevel = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
         val isCharging = batteryManager.isCharging
         val status = if (isCharging) "charge ho raha hai" else "battery use ho rahi hai"
-        return CommandResult.ok("Battery $batteryLevel% hai, $status", "level" to batteryLevel, "charging" to isCharging)
+        return CommandResult.ok("Battery $batteryLevel% hai, $status", mapOf("level" to batteryLevel, "charging" to isCharging))
     }
 
     fun openBatterySettings(): CommandResult {
@@ -62,7 +62,7 @@ class DeviceController(private val context: Context) {
             )
             val maxBrightness = 255
             val percent = (brightness * 100) / maxBrightness
-            CommandResult.ok("Screen brightness $percent% hai", "brightness" to percent)
+            CommandResult.ok("Screen brightness $percent% hai", mapOf("brightness" to percent))
         } catch (e: SecurityException) {
             CommandResult.error("Brightness padh nahi payi", "SETTINGS_PERMISSION_DENIED")
         }
@@ -77,7 +77,7 @@ class DeviceController(private val context: Context) {
                 Settings.System.SCREEN_BRIGHTNESS,
                 brightness
             )
-            CommandResult.ok("Brightness $clamped% pe set kar diya", "brightness" to clamped)
+            CommandResult.ok("Brightness $clamped% pe set kar diya", mapOf("brightness" to clamped))
         } catch (e: SecurityException) {
             CommandResult.error("Brightness change nahi ho payi", "SETTINGS_PERMISSION_DENIED")
         }
@@ -109,7 +109,7 @@ class DeviceController(private val context: Context) {
         }
 
         return if (isIgnoringBattery) {
-            CommandResult.ok("Battery optimization chhutti hai Jarvice ke liye", "ignored" to true)
+            CommandResult.ok("Battery optimization chhutti hai Jarvice ke liye", mapOf("ignored" to true))
         } else {
             CommandResult(
                 success = false,
@@ -127,7 +127,7 @@ class DeviceController(private val context: Context) {
             val newBrightness = (current + 25).coerceAtMost(255)
             Settings.System.putInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS, newBrightness)
             val percent = (newBrightness * 100) / 255
-            CommandResult.ok("Brightness badha diya: $percent%", "brightness" to percent)
+            CommandResult.ok("Brightness badha diya: $percent%", mapOf("brightness" to percent))
         } catch (e: SecurityException) {
             CommandResult.error("Brightness change nahi ho payi", "SETTINGS_PERMISSION_DENIED")
         }
@@ -139,7 +139,7 @@ class DeviceController(private val context: Context) {
             val newBrightness = (current - 25).coerceAtLeast(0)
             Settings.System.putInt(context.contentResolver, Settings.System.SCREEN_BRIGHTNESS, newBrightness)
             val percent = (newBrightness * 100) / 255
-            CommandResult.ok("Brightness ghata di: $percent%", "brightness" to percent)
+            CommandResult.ok("Brightness ghata di: $percent%", mapOf("brightness" to percent))
         } catch (e: SecurityException) {
             CommandResult.error("Brightness change nahi ho payi", "SETTINGS_PERMISSION_DENIED")
         }

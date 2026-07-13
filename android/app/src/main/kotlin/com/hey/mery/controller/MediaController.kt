@@ -80,8 +80,7 @@ class MediaController(private val context: Context) {
         val controller = getActiveController()
             ?: return CommandResult.ok(
                 "Koi active media nahi",
-                "playing" to false,
-                "hasSession" to false
+                mapOf("playing" to false, "hasSession" to false)
             )
         val state = controller.playbackState
         val isPlaying = state?.state == android.media.session.PlaybackState.STATE_PLAYING
@@ -90,18 +89,20 @@ class MediaController(private val context: Context) {
         val artist = metadata?.getString(android.media.MediaMetadata.METADATA_KEY_ARTIST)
         return CommandResult.ok(
             if (isPlaying) "Chal raha hai" else "Ruka hua hai",
-            "playing" to isPlaying,
-            "title" to title,
-            "artist" to artist,
-            "hasSession" to true
+            mapOf(
+                "playing" to isPlaying,
+                "title" to title,
+                "artist" to artist,
+                "hasSession" to true
+            )
         )
     }
 
     fun getCurrentMediaApp(): CommandResult {
         val controller = getActiveController()
-            ?: return CommandResult.ok("Koi active media nahi", "package" to "")
+            ?: return CommandResult.ok("Koi active media nahi", mapOf("package" to ""))
         val pkg = controller.packageName
-        return CommandResult.ok("Media app: $pkg", "package" to pkg)
+        return CommandResult.ok("Media app: $pkg", mapOf("package" to pkg))
     }
 
     fun playMediaQuery(query: String): CommandResult {

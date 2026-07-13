@@ -172,7 +172,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
                 val text = call.argument<String>("text") ?: ""
                 val parsed = alarmController.parseTimeFromText(text)
                 if (parsed != null) {
-                    CommandResult.ok("Time parsed", "hour" to parsed.first, "minute" to parsed.second)
+                    CommandResult.ok("Time parsed", mapOf("hour" to parsed.first, "minute" to parsed.second))
                 } else {
                     CommandResult.error("Time parse nahi ho paya", "TIME_PARSE_FAILED")
                 }
@@ -181,7 +181,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
                 val text = call.argument<String>("text") ?: ""
                 val parsed = alarmController.parseTimerMinutes(text)
                 if (parsed != null) {
-                    CommandResult.ok("Timer parsed", "minutes" to parsed)
+                    CommandResult.ok("Timer parsed", mapOf("minutes" to parsed))
                 } else {
                     CommandResult.error("Timer parse nahi ho paya", "TIMER_PARSE_FAILED")
                 }
@@ -214,7 +214,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
                         ShizukuController.ShizukuStatus.NOT_RUNNING -> "Not Running"
                         ShizukuController.ShizukuStatus.PERMISSION_REQUIRED -> "Permission Required"
                     },
-                    "status" to status.name.lowercase()
+                    mapOf("status" to status.name.lowercase())
                 )
             }
 
@@ -223,7 +223,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
                 val available = rootController.isAvailable()
                 CommandResult.ok(
                     if (available) "Root available hai" else "Root available nahi hai",
-                    "available" to available
+                    mapOf("available" to available)
                 )
             }
 
@@ -916,7 +916,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
             val isOn = wifiManager.isWifiEnabled
             CommandResult.ok(
                 if (isOn) "WiFi on hai" else "WiFi band hai",
-                "enabled" to isOn
+                mapOf("enabled" to isOn)
             )
         } catch (e: Exception) {
             CommandResult.error("WiFi state pata nahi chala: ${e.message}")
@@ -951,7 +951,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
             val isOn = adapter?.isEnabled ?: false
             CommandResult.ok(
                 if (isOn) "Bluetooth on hai" else "Bluetooth band hai",
-                "enabled" to isOn
+                mapOf("enabled" to isOn)
             )
         } catch (e: Exception) {
             CommandResult.error("Bluetooth state pata nahi chala: ${e.message}")
@@ -968,7 +968,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
                     "address" to device.address
                 )
             } ?: emptyList()
-            CommandResult.ok("${devices.size} devices paired", "devices" to devices)
+            CommandResult.ok("${devices.size} devices paired", mapOf("devices" to devices))
         } catch (e: Exception) {
             CommandResult.error("Devices nahi mil paye: ${e.message}")
         }
@@ -989,8 +989,10 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
             val connected = type != "none"
             CommandResult.ok(
                 if (connected) "Connected via $type" else "No connection",
-                "type" to type,
-                "connected" to connected
+                mapOf(
+                    "type" to type,
+                    "connected" to connected
+                )
             )
         } catch (e: Exception) {
             CommandResult.error("Network state pata nahi chala: ${e.message}")
@@ -1028,7 +1030,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
             ) != 0
             CommandResult.ok(
                 if (isOn) "Location on hai" else "Location band hai",
-                "enabled" to isOn
+                mapOf("enabled" to isOn)
             )
         } catch (e: Exception) {
             CommandResult.error("Location state pata nahi chala: ${e.message}")
@@ -1069,7 +1071,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
             val isCharging = status == 2 || status == 5
             CommandResult.ok(
                 if (isCharging) "Charge ho raha hai" else "Charge nahi ho raha",
-                "charging" to isCharging
+                mapOf("charging" to isCharging)
             )
         } catch (e: Exception) {
             CommandResult.error("Charging state pata nahi chala: ${e.message}")
@@ -1178,7 +1180,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
             val isOn = powerManager.isInteractive
             CommandResult.ok(
                 if (isOn) "Screen on hai" else "Screen band hai",
-                "screenOn" to isOn
+                mapOf("screenOn" to isOn)
             )
         } catch (e: Exception) {
             CommandResult.error("Screen state pata nahi chala: ${e.message}")
@@ -1194,7 +1196,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
             val isAuto = rotation == 1
             CommandResult.ok(
                 if (isAuto) "Auto rotation on hai" else "Auto rotation band hai",
-                "autoRotate" to isAuto
+                mapOf("autoRotate" to isAuto)
             )
         } catch (e: Exception) {
             CommandResult.error("Rotation state pata nahi chala: ${e.message}")
@@ -1245,7 +1247,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
             val isOn = current != 0
             CommandResult.ok(
                 if (isOn) "DND on hai" else "DND band hai",
-                "enabled" to isOn
+                mapOf("enabled" to isOn)
             )
         } catch (e: Exception) {
             CommandResult.error("DND state pata nahi chala: ${e.message}")
@@ -1294,9 +1296,9 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
             val clip = clipboard.primaryClip
             if (clip != null && clip.itemCount > 0) {
                 val text = clip.getItemAt(0).text?.toString() ?: ""
-                CommandResult.ok("Clipboard mein: $text", "text" to text)
+                CommandResult.ok("Clipboard mein: $text", mapOf("text" to text))
             } else {
-                CommandResult.ok("Clipboard khali hai", "text" to "")
+                CommandResult.ok("Clipboard khali hai", mapOf("text" to ""))
             }
         } catch (e: Exception) {
             CommandResult.error("Clipboard padh nahi paya: ${e.message}")

@@ -110,7 +110,7 @@ class AppController(private val context: Context) {
         }
         return CommandResult.ok(
             "${matches.size} apps mile",
-            "apps" to matches.take(5).map { mapOf("name" to it.name, "package" to it.packageName) }
+            mapOf("apps" to matches.take(5).map { mapOf("name" to it.name, "package" to it.packageName) })
         )
     }
 
@@ -148,7 +148,7 @@ class AppController(private val context: Context) {
                 }
                 pm.getApplicationLabel(appInfo).toString()
             } catch (e: Exception) { pkg }
-            CommandResult.ok("Foreground app: $label", "package" to pkg, "name" to label)
+            CommandResult.ok("Foreground app: $label", mapOf("package" to pkg, "name" to label))
         } catch (e: Exception) {
             CommandResult.error("Foreground app pata nahi chala: ${e.message}")
         }

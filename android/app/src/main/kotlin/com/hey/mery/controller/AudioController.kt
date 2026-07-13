@@ -27,7 +27,7 @@ class AudioController(context: Context) {
         val newVol = audioManager.getStreamVolume(streamType)
         val percent = (newVol * 100) / maxVol
         JarviceLogger.i(COMPONENT, "volumeUp", "Stream=$stream, $currentVol->$newVol ($percent%)")
-        return CommandResult.ok("Volume badha diya: $percent%", "volume" to percent)
+        return CommandResult.ok("Volume badha diya: $percent%", mapOf("volume" to percent))
     }
 
     fun volumeDown(stream: String = "music"): CommandResult {
@@ -43,7 +43,7 @@ class AudioController(context: Context) {
         val newVol = audioManager.getStreamVolume(streamType)
         val percent = (newVol * 100) / maxVol
         JarviceLogger.i(COMPONENT, "volumeDown", "Stream=$stream, $currentVol->$newVol ($percent%)")
-        return CommandResult.ok("Volume kam kiya: $percent%", "volume" to percent)
+        return CommandResult.ok("Volume kam kiya: $percent%", mapOf("volume" to percent))
     }
 
     fun setVolume(percent: Int, stream: String = "music"): CommandResult {
@@ -55,7 +55,7 @@ class AudioController(context: Context) {
         audioManager.setStreamVolume(streamType, targetVol, AudioManager.FLAG_SHOW_UI)
         val actualPercent = (targetVol * 100) / maxVol
         JarviceLogger.i(COMPONENT, "setVolume", "Stream=$stream, target=$clampedPercent%, actual=$actualPercent%")
-        return CommandResult.ok("Volume $actualPercent% pe set kar diya", "volume" to actualPercent)
+        return CommandResult.ok("Volume $actualPercent% pe set kar diya", mapOf("volume" to actualPercent))
     }
 
     fun mute(stream: String = "music"): CommandResult {
@@ -97,11 +97,13 @@ class AudioController(context: Context) {
         val percent = if (maxVol > 0) (currentVol * 100) / maxVol else 0
         return CommandResult.ok(
             "Volume $percent% hai",
-            "current" to currentVol,
-            "max" to maxVol,
-            "percent" to percent,
-            "isMuted" to (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                    audioManager.isStreamMute(streamType))
+            mapOf(
+                "current" to currentVol,
+                "max" to maxVol,
+                "percent" to percent,
+                "isMuted" to (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                        audioManager.isStreamMute(streamType))
+            )
         )
     }
 

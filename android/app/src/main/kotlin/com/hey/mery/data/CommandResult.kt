@@ -24,12 +24,6 @@ data class CommandResult(
         fun ok(message: String, key: String, value: Any?) =
             CommandResult(success = true, message = message, data = mapOf(key to value))
 
-        fun ok(message: String, pair: Pair<String, Any?>) =
-            CommandResult(success = true, message = message, data = mapOf(pair))
-
-        fun ok(message: String, pair1: Pair<String, Any?>, pair2: Pair<String, Any?>) =
-            CommandResult(success = true, message = message, data = mapOf(pair1, pair2))
-
         fun error(message: String, code: String = "UNKNOWN_ERROR") =
             CommandResult(success = false, message = message, errorCode = code)
 

@@ -29,7 +29,7 @@ class CallController(private val context: Context) {
         }
 
         if (isPhoneNumber(query)) {
-            return CommandResult.ok("Number mila", "number" to query, "name" to query)
+            return CommandResult.ok("Number mila", mapOf("number" to query, "name" to query))
         }
 
         val matches = findContacts(query)
@@ -41,9 +41,11 @@ class CallController(private val context: Context) {
                 val contact = matches.first()
                 CommandResult.ok(
                     "${contact.name} mila",
-                    "name" to contact.name,
-                    "number" to contact.phoneNumber,
-                    "contactId" to contact.contactId
+                    mapOf(
+                        "name" to contact.name,
+                        "number" to contact.phoneNumber,
+                        "contactId" to contact.contactId
+                    )
                 )
             }
             else -> {
