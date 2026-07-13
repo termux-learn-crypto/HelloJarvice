@@ -1501,7 +1501,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
                 val descArr = day.getJSONArray("hourly")
                 val desc = if (descArr.length() > 4) {
                     descArr.getJSONObject(4).getJSONArray("weatherDesc").let {
-                        if (it.has(0)) it.getJSONObject(0).optString("value", "") else ""
+                        if (it.length() > 0) it.getJSONObject(0).optString("value", "") else ""
                     }
                 } else ""
                 forecasts.add("$date: $desc, $minTemp°C - $maxTemp°C")
@@ -1509,8 +1509,7 @@ class MobileController(private val context: Context) : MethodChannel.MethodCallH
             val forecastText = forecasts.joinToString("\n")
             CommandResult.ok(
                 "Weather forecast for $query:\n$forecastText",
-                "forecasts" to forecasts,
-                "query" to query
+                mapOf("forecasts" to forecasts, "query" to query)
             )
         } catch (e: Exception) {
             JarviceLogger.e(COMPONENT, "getWeatherForecast", "Error: ${e.message}", e)

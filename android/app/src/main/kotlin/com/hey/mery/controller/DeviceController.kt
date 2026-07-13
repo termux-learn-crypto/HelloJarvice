@@ -62,7 +62,7 @@ class DeviceController(private val context: Context) {
             val percent = (brightness * 100) / maxBrightness
             CommandResult.ok("Screen brightness $percent% hai", "brightness" to percent)
         } catch (e: SecurityException) {
-            CommandResult.error("Brightness padh nahi payi", "SETTINGS_PERMISSION_DENIED", "SETTINGS_PERMISSION_DENIED")
+            CommandResult.error("Brightness padh nahi payi", "SETTINGS_PERMISSION_DENIED")
         }
     }
 
@@ -77,7 +77,7 @@ class DeviceController(private val context: Context) {
             )
             CommandResult.ok("Brightness $clamped% pe set kar diya", "brightness" to clamped)
         } catch (e: SecurityException) {
-            CommandResult.error("Brightness change nahi ho payi", "SETTINGS_PERMISSION_DENIED", "SETTINGS_PERMISSION_DENIED")
+            CommandResult.error("Brightness change nahi ho payi", "SETTINGS_PERMISSION_DENIED")
         }
     }
 

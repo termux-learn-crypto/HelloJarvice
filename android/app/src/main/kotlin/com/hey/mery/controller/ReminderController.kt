@@ -71,7 +71,7 @@ class ReminderController(private val context: Context) {
 
         val timeStr = String.format("%02d:%02d", targetHour, targetMinute)
         JarviceLogger.i(COMPONENT, "createReminder", "Created: $title at $timeStr")
-        return CommandResult.ok("Reminder set: $title at $timeStr", "id" to id)
+        return CommandResult.ok("Reminder set: $title at $timeStr", mapOf("id" to id))
     }
 
     fun listReminders(): CommandResult {
@@ -82,7 +82,7 @@ class ReminderController(private val context: Context) {
         val summaries = all.map { (key, value) ->
             mapOf("id" to key, "summary" to value.toString())
         }
-        return CommandResult.ok("${all.size} active reminders", "reminders" to summaries)
+        return CommandResult.ok("${all.size} active reminders", mapOf("reminders" to summaries))
     }
 
     fun updateReminder(id: String, title: String?, hour: Int?, minute: Int?): CommandResult {
@@ -101,7 +101,7 @@ class ReminderController(private val context: Context) {
 
     fun getReminder(id: String): CommandResult {
         val data = prefs.getString(id, null) ?: return CommandResult.error("Reminder nahi mila")
-        return CommandResult.ok("Reminder mila", "data" to data)
+        return CommandResult.ok("Reminder mila", mapOf("data" to data))
     }
 
     fun completeReminder(id: String): CommandResult {

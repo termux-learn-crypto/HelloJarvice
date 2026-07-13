@@ -95,7 +95,7 @@ class CallController(private val context: Context) {
 
     fun dialNumber(number: String, displayName: String? = null): CommandResult {
         return try {
-            val cleanNumber = number.replaceAll("[^\\d+]", "")
+            val cleanNumber = number.replace(Regex("[^\\d+]"), "")
             val uri = Uri.parse("tel:$cleanNumber")
             val intent = Intent(Intent.ACTION_DIAL, uri).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -168,7 +168,7 @@ class CallController(private val context: Context) {
     }
 
     private fun isPhoneNumber(input: String): Boolean {
-        val cleaned = input.replaceAll("[\\s\\-\\(\\)]", "")
+        val cleaned = input.replace(Regex("[\\s\\-\\(\\)]"), "")
         return cleaned.matches(Regex("^\\+?\\d{7,15}$"))
     }
 

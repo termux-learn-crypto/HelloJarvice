@@ -31,7 +31,7 @@ class TorchController(context: Context) {
             CommandResult.error("Flashlight on nahi ho paya", "FLASHLIGHT_ACCESS_ERROR")
         } catch (e: SecurityException) {
             JarviceLogger.e(COMPONENT, "turnOn", "Camera permission denied: ${e.message}", e)
-            CommandResult.error("Camera permission chahiye flashlight ke liye", "CAMERA_PERMISSION_DENIED", "CAMERA_PERMISSION_DENIED")
+            CommandResult.error("Camera permission chahiye flashlight ke liye", "CAMERA_PERMISSION_DENIED")
         } catch (e: Exception) {
             JarviceLogger.e(COMPONENT, "turnOn", "Error: ${e.message}", e)
             CommandResult.error("Flashlight on nahi ho paya", "FLASHLIGHT_ERROR")
@@ -81,7 +81,7 @@ class TorchController(context: Context) {
         val on = isOn()
         return CommandResult.ok(
             if (on) "Torch on hai" else "Torch band hai",
-            "enabled" to on
+            mapOf("enabled" to on)
         )
     }
 }

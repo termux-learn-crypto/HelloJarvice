@@ -24,7 +24,7 @@ class SmsController(private val context: Context) {
 
         return try {
             val cleanNumber = if (isPhoneNumber(recipient)) {
-                recipient.replaceAll("[^\\d+]", "")
+                recipient.replace(Regex("[^\\d+]"), "")
             } else {
                 recipient
             }
@@ -49,7 +49,7 @@ class SmsController(private val context: Context) {
     }
 
     private fun isPhoneNumber(input: String): Boolean {
-        val cleaned = input.replaceAll("[\\s\\-\\(\\)]", "")
+        val cleaned = input.replace(Regex("[\\s\\-\\(\\)]"), "")
         return cleaned.matches(Regex("^\\+?\\d{7,15}$"))
     }
 }

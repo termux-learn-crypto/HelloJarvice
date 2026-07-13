@@ -24,6 +24,9 @@ data class CommandResult(
         fun ok(message: String, key: String, value: Any?) =
             CommandResult(success = true, message = message, data = mapOf(key to value))
 
+        fun ok(message: String, vararg pairs: Pair<String, Any?>) =
+            CommandResult(success = true, message = message, data = mapOf(*pairs))
+
         fun error(message: String, code: String = "UNKNOWN_ERROR") =
             CommandResult(success = false, message = message, errorCode = code)
 

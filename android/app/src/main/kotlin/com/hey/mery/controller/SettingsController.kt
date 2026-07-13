@@ -26,7 +26,7 @@ class SettingsController(private val context: Context) {
                     data = android.net.Uri.parse("package:${context.packageName}")
                 }
                 "accessibility" -> Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                "notification" -> Intent(Settings.ACTION_NOTIFICATION_SETTINGS)
+                "notification" -> Intent(Settings.ACTION_SETTINGS)
                 "security" -> Intent(Settings.ACTION_SECURITY_SETTINGS)
                 "data" -> Intent(Settings.ACTION_DATA_ROAMING_SETTINGS)
                 "data_usage" -> Intent(Settings.ACTION_DATA_USAGE_SETTINGS)
@@ -42,7 +42,7 @@ class SettingsController(private val context: Context) {
             }
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
-            CommandResult.ok("Settings khol diye: ${section ?: 'main'}")
+            CommandResult.ok("Settings khol diye: ${section ?: "main"}")
         } catch (e: Exception) {
             JarviceLogger.e(COMPONENT, "openSettings", "Failed: ${e.message}", e)
             CommandResult.error("Settings nahi khule: ${e.message}")
