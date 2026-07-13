@@ -26,18 +26,18 @@ jobs:
 
       - name: Generate keystore
         run: |
-          KEYSTORE_PASS=$(openssl rand -base64 16 | tr -dc 'a-zA-Z0-9' | head -c 16)
-          KEY_PASS=$(openssl rand -base64 16 | tr -dc 'a-zA-Z0-9' | head -c 16)
+          KEYSTORE_PASS=$(tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c 16)
+          KEY_PASS=$(tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c 16)
           keytool -genkeypair -v -keystore android/hello-jarvice.jks -alias jarvice -keyalg RSA -keysize 2048 -validity 10000 -storepass "$KEYSTORE_PASS" -keypass "$KEY_PASS" -dname "CN=HeyMery, OU=Dev, O=HeyMery, L=Delhi, ST=Delhi, C=IN"
-          echo "KEYSTORE_PASS=$KEYSTORE_PASS" >> $GITHUB_ENV
-          echo "KEY_PASS=$KEY_PASS" >> $GITHUB_ENV
+          echo "KEYSTORE_PASS=$KEYSTORE_PASS" >> "$GITHUB_ENV"
+          echo "KEY_PASS=$KEY_PASS" >> "$GITHUB_ENV"
 
       - name: Create key.properties
         run: |
-          echo "storePassword=$KEYSTORE_PASS" > android/key.properties
-          echo "keyPassword=$KEY_PASS" >> android/key.properties
-          echo "keyAlias=jarvice" >> android/key.properties
-          echo "storeFile=hello-jarvice.jks" >> android/key.properties
+          printf 'storePassword=%s\n' "$KEYSTORE_PASS" > android/key.properties
+          printf 'keyPassword=%s\n' "$KEY_PASS" >> android/key.properties
+          printf 'keyAlias=jarvice\n' >> android/key.properties
+          printf 'storeFile=hello-jarvice.jks\n' >> android/key.properties
 
       - name: Install dependencies
         run: flutter pub get
