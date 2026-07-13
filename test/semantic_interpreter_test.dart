@@ -1,8 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hello_jarvice/core/semantic_interpreter.dart';
 import 'package:hello_jarvice/core/capability.dart';
+import 'package:hello_jarvice/core/capability_registry.dart';
 
 void main() {
+  setUpAll(() {
+    CapabilityRegistry.instance.initialize();
+  });
+
   group('SemanticInterpreter', () {
     group('normalizeHinglish', () {
       test('normalizes chalo to open', () {
