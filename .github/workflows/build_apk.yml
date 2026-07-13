@@ -24,17 +24,12 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Generate keystore
+      - name: Generate keystore and key.properties
         run: |
-          KEYSTORE_PASS=$(tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c 16)
-          KEY_PASS=$(tr -dc 'a-zA-Z0-9' < /dev/urandom | head -c 16)
-          keytool -genkeypair -v -keystore android/hello-jarvice.jks -alias jarvice -keyalg RSA -keysize 2048 -validity 10000 -storepass "$KEYSTORE_PASS" -keypass "$KEY_PASS" -dname "CN=HeyMery, OU=Dev, O=HeyMery, L=Delhi, ST=Delhi, C=IN"
-          echo "KEYSTORE_PASS=$KEYSTORE_PASS" >> "$GITHUB_ENV"
-          echo "KEY_PASS=$KEY_PASS" >> "$GITHUB_ENV"
-
-      - name: Create key.properties
-        run: |
-          printf 'storePassword=%s\n' "$KEYSTORE_PASS" > android/key.properties
+          STORE_PASS="jarvice$(openssl rand -hex 8)"
+          KEY_PASS="jarvice$(openssl rand -hex 8)"
+          keytool -genkeypair -v -keystore android/hello-jarvice.jks -alias jarvice -keyalg RSA -keysize 2048 -validity 10000 -storepass "$STORE_PASS" -keypass "$KEY_PASS" -dname "CN=HeyMery, OU=Dev, O=HeyMery, L=Delhi, ST=Delhi, C=IN"
+          printf 'storePassword=%s\n' "$STORE_PASS" > android/key.properties
           printf 'keyPassword=%s\n' "$KEY_PASS" >> android/key.properties
           printf 'keyAlias=jarvice\n' >> android/key.properties
           printf 'storeFile=hello-jarvice.jks\n' >> android/key.properties
