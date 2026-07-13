@@ -29,6 +29,12 @@ class SttService {
     String selectedLocale = localeId ?? _detectLocale();
 
     try {
+      final options = stt.SpeechListenOptions(
+        localeId: selectedLocale,
+        listenMode: stt.ListenMode.dictation,
+        cancelOnError: true,
+      );
+
       await _speech.listen(
         onResult: (val) {
           if (val.recognizedWords.isNotEmpty) {
@@ -36,9 +42,7 @@ class SttService {
             onLiveResult?.call(result);
           }
         },
-        localeId: selectedLocale,
-        listenMode: stt.ListenMode.dictation,
-        cancelOnError: true,
+        listenOptions: options,
       );
 
       await Future.delayed(const Duration(seconds: 5));

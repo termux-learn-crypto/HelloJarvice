@@ -55,9 +55,9 @@ public class WakeWordEngine {
         try {
             ortEnv = OrtEnvironment.getEnvironment();
 
-            melSpecSession = loadModel(context, "models/melspectrogram.onnx");
-            embeddingSession = loadModel(context, "models/embedding_model.onnx");
-            classifierSession = loadModel(context, "models/hey_jarvis.onnx");
+            melSpecSession = loadModel(context, "flutter_assets/models/melspectrogram.onnx");
+            embeddingSession = loadModel(context, "flutter_assets/models/embedding_model.onnx");
+            classifierSession = loadModel(context, "flutter_assets/models/hey_jarvis.onnx");
 
             melSpecInputName = melSpecSession.getInputNames().iterator().next();
             embeddingInputName = embeddingSession.getInputNames().iterator().next();

@@ -19,13 +19,22 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'conversations.db');
     return await openDatabase(
       path,
-      version: 1,
-      onCreate: (db, version) {
-        return db.execute(
-          'CREATE TABLE conversations(id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT, reply TEXT, timestamp TEXT, isUser INTEGER)',
-        );
-      },
+      version: 2,
+      onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  Future<void> _onCreate(Database db, int version) async {
+    await db.execute(
+      'CREATE TABLE conversations(id INTEGER PRIMARY KEY AUTOINCREMENT, text TEXT, reply TEXT, timestamp TEXT, isUser INTEGER)',
+    );
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Future migrations go here
+    }
   }
 
   Future<int> insertConversation(Conversation conversation) async {

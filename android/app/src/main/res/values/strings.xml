@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="accessibility_service_description">Jarvice uses accessibility to perform back, home, recents, scroll, and UI navigation commands when you ask via voice.</string>
+    <string name="notification_listener_description">Jarvice reads notifications when you ask to hear them.</string>
+</resources>

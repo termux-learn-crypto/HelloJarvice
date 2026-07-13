@@ -5,11 +5,16 @@ import '../database/database_helper.dart';
 import '../services/stt_service.dart';
 import '../services/tts_service.dart';
 import '../services/wake_word_service.dart';
-import '../services/intent_parser.dart';
-import '../services/action_handler.dart';
+import '../core/semantic_interpreter.dart';
+import '../core/action_planner.dart';
+import '../core/capability_executor.dart';
+import '../core/response_generator.dart';
+import '../core/capability_registry.dart';
+import '../core/capability_result.dart';
+import '../models/action_plan.dart';
 import '../widgets/voice_button.dart';
 import '../widgets/conversation_tile.dart';
-import 'settings_screen.dart';
+import 'control_center_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,7 +27,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final SttService _stt = SttService();
   final TtsService _tts = TtsService();
   final WakeWordService _wakeWord = WakeWordService();
-  final IntentParser _parser = IntentParser();
   final DatabaseHelper _db = DatabaseHelper();
 
   List<Conversation> _conversations = [];
@@ -31,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _processing = false;
   String _liveText = '';
   String _statusMessage = '';
+  String _wakeWordState = 'stopped';
 
   @override
   void initState() {
@@ -39,33 +44,62 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _initialize() async {
-    await _tts.initialize();
-    bool sttReady = await _stt.initialize();
-    if (!sttReady && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Speech recognition available nahi hai. Device check karein.'),
-          duration: Duration(seconds: 4),
-        ),
-      );
+    CapabilityRegistry.instance.initialize();
+
+    try {
+      await _tts.initialize();
+    } catch (e) {
+      debugPrint('TTS init failed: $e');
     }
-    await _tts.speak('Namaste, main Jarvis hoon. Kaise madad kar sakta hoon?');
+
+    try {
+      bool sttReady = await _stt.initialize();
+      if (!sttReady && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Speech recognition available nahi hai. Device check karein.'),
+            duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('STT init failed: $e');
+    }
+
+    try {
+      await _tts.speak('Namaste, main Jarvis hoon. Kaise madad kar sakta hoon?');
+    } catch (e) {
+      debugPrint('TTS speak failed: $e');
+    }
+
     _loadHistory();
     _initWakeWord();
   }
 
   Future<void> _initWakeWord() async {
-    bool initialized = await _wakeWord.initialize();
-    if (initialized && mounted) {
-      _wakeWord.onWakeWordDetected = () {
-        if (!_processing) {
-          _startListening();
+    try {
+      bool initialized = await _wakeWord.initialize();
+      if (initialized && mounted) {
+        _wakeWord.onWakeWordDetected = () {
+          if (!_processing) {
+            _startListening();
+          }
+        };
+        _wakeWord.onStateChanged = (state) {
+          if (mounted) {
+            setState(() => _wakeWordState = state);
+          }
+        };
+        bool started = await _wakeWord.startListening();
+        if (mounted) {
+          setState(() {
+            _wakeWordActive = started;
+            _wakeWordState = started ? 'listening' : 'stopped';
+          });
         }
-      };
-      bool started = await _wakeWord.startListening();
-      if (mounted) {
-        setState(() => _wakeWordActive = started);
       }
+    } catch (e) {
+      debugPrint('Wake word init failed: $e');
     }
   }
 
@@ -86,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     if (_wakeWordActive) {
-      await _wakeWord.stopListening();
+      await _wakeWord.pauseListening();
       await Future.delayed(const Duration(milliseconds: 500));
     }
 
@@ -106,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _statusMessage = 'Kuch suna nahi. Phir se boliye.';
       });
       if (_wakeWordActive) {
-        await _wakeWord.startListening();
+        await _wakeWord.resumeListening();
       }
       await Future.delayed(const Duration(seconds: 2));
       if (mounted) {
@@ -120,11 +154,12 @@ class _HomeScreenState extends State<HomeScreen> {
       _statusMessage = 'Processing...';
     });
 
-    _addConversation(text, '', true);
     setState(() => _isListening = false);
 
-    IntentResult intent = _parser.parse(text);
-    String reply = await ActionHandler.execute(intent);
+    List<Goal> goals = SemanticInterpreter.instance.interpret(text);
+    ActionPlan plan = ActionPlanner.instance.createPlan(goals, text);
+    CapabilityResult result = await CapabilityExecutor.instance.executePlan(plan);
+    String reply = ResponseGenerator.instance.generateResponse(result);
 
     _addConversation(text, reply, false);
     setState(() => _statusMessage = '');
@@ -134,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _processing = false);
 
     if (_wakeWordActive) {
-      await _wakeWord.startListening();
+      await _wakeWord.resumeListening();
     }
   }
 
@@ -164,34 +199,98 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  String _getWakeWordStatusText() {
+    switch (_wakeWordState) {
+      case 'listening':
+        return 'Listening...';
+      case 'paused':
+        return 'Paused';
+      case 'processing_command':
+        return 'Processing...';
+      case 'wake_word_detected':
+        return 'Detected!';
+      case 'starting':
+        return 'Starting...';
+      case 'error':
+        return 'Error';
+      default:
+        return 'Stopped';
+    }
+  }
+
+  Color _getWakeWordStatusColor() {
+    switch (_wakeWordState) {
+      case 'listening':
+        return Colors.green;
+      case 'paused':
+        return Colors.orange;
+      case 'processing_command':
+        return Colors.blue;
+      case 'wake_word_detected':
+        return Colors.lightGreen;
+      case 'starting':
+        return Colors.yellow;
+      case 'error':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Row(
           children: [
-            Icon(Icons.smart_toy, size: 28),
-            SizedBox(width: 8),
-            Text('Hello Jarvice'),
+            const Icon(Icons.smart_toy, size: 28),
+            const SizedBox(width: 8),
+            const Text('Hello Jarvice'),
           ],
         ),
         actions: [
-          Icon(
-            _wakeWordActive ? Icons.hearing : Icons.hearing_disabled,
-            color: _wakeWordActive ? Colors.green : Colors.grey,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            margin: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: _getWakeWordStatusColor().withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _getWakeWordStatusColor(),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  _getWakeWordStatusText(),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: _getWakeWordStatusColor(),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 4),
           IconButton(
-            icon: Icon(Icons.settings),
+            icon: const Icon(Icons.settings),
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => SettingsScreen(ttsService: _tts)),
+                MaterialPageRoute(builder: (_) => ControlCenterScreen(ttsService: _tts)),
               );
             },
           ),
           IconButton(
-            icon: Icon(Icons.delete_outline),
+            icon: const Icon(Icons.delete_outline),
             onPressed: () async {
               await _db.clearConversations();
               setState(() => _conversations.clear());
@@ -208,22 +307,27 @@ class _HomeScreenState extends State<HomeScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.mic, size: 64, color: Colors.grey.shade300),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         Text(
                           'Boliye... main sun raha hoon',
-                          style: TextStyle(fontSize: 18, color: Colors.grey),
+                          style: TextStyle(fontSize: 18, color: Colors.grey.shade600),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
-                          '\"Call mummy\" ya \"Mausam kya hai\"',
+                          '"Call mummy" ya "Mausam kya hai" ya "Volume badhao"',
                           style: TextStyle(fontSize: 14, color: Colors.grey.shade400),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Hindi, English, Hinglish sab chalega',
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
                         ),
                       ],
                     ),
                   )
                 : ListView.builder(
                     reverse: true,
-                    padding: EdgeInsets.only(top: 8, bottom: 80),
+                    padding: const EdgeInsets.only(top: 8, bottom: 80),
                     itemCount: _conversations.length,
                     itemBuilder: (context, index) {
                       return ConversationTile(
@@ -235,15 +339,17 @@ class _HomeScreenState extends State<HomeScreen> {
           if (_isListening || _liveText.isNotEmpty || _statusMessage.isNotEmpty)
             Container(
               width: double.infinity,
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              margin: EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              margin: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
                 color: _isListening
                     ? Colors.redAccent.withValues(alpha: 0.1)
                     : Colors.grey.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: _isListening ? Colors.redAccent.withValues(alpha: 0.3) : Colors.grey.withValues(alpha: 0.2),
+                  color: _isListening
+                      ? Colors.redAccent.withValues(alpha: 0.3)
+                      : Colors.grey.withValues(alpha: 0.2),
                 ),
               ),
               child: Column(
@@ -252,7 +358,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(
+                        const SizedBox(
                           width: 12,
                           height: 12,
                           child: CircularProgressIndicator(
@@ -260,10 +366,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: Colors.redAccent,
                           ),
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         Text(
                           _statusMessage,
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.redAccent,
                             fontWeight: FontWeight.bold,
                           ),
@@ -271,10 +377,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   if (_liveText.isNotEmpty) ...[
-                    if (_isListening) SizedBox(height: 8),
+                    if (_isListening) const SizedBox(height: 8),
                     Text(
                       _liveText,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 16,
                         color: Colors.black87,
                         fontWeight: FontWeight.w500,
@@ -285,7 +391,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (!_isListening && _statusMessage.isNotEmpty && _liveText.isEmpty)
                     Text(
                       _statusMessage,
-                      style: TextStyle(color: Colors.grey, fontSize: 14),
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
                       textAlign: TextAlign.center,
                     ),
                 ],

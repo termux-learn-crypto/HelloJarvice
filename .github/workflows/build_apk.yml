@@ -25,23 +25,37 @@ jobs:
           cache: true
 
       - name: Generate keystore
-        run: keytool -genkeypair -v -keystore android/hello-jarvice.jks -alias jarvice -keyalg RSA -keysize 2048 -validity 10000 -storepass jarvice123 -keypass jarvice123 -dname "CN=HeyMery, OU=Dev, O=HeyMery, L=Delhi, ST=Delhi, C=IN"
+        run: |
+          KEYSTORE_PASS=$(openssl rand -base64 16 | tr -dc 'a-zA-Z0-9' | head -c 16)
+          KEY_PASS=$(openssl rand -base64 16 | tr -dc 'a-zA-Z0-9' | head -c 16)
+          keytool -genkeypair -v -keystore android/hello-jarvice.jks -alias jarvice -keyalg RSA -keysize 2048 -validity 10000 -storepass "$KEYSTORE_PASS" -keypass "$KEY_PASS" -dname "CN=HeyMery, OU=Dev, O=HeyMery, L=Delhi, ST=Delhi, C=IN"
+          echo "KEYSTORE_PASS=$KEYSTORE_PASS" >> $GITHUB_ENV
+          echo "KEY_PASS=$KEY_PASS" >> $GITHUB_ENV
 
       - name: Create key.properties
         run: |
-          echo "storePassword=jarvice123" > android/key.properties
-          echo "keyPassword=jarvice123" >> android/key.properties
+          echo "storePassword=$KEYSTORE_PASS" > android/key.properties
+          echo "keyPassword=$KEY_PASS" >> android/key.properties
           echo "keyAlias=jarvice" >> android/key.properties
           echo "storeFile=hello-jarvice.jks" >> android/key.properties
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build APK
-        run: flutter build apk --release
+      - name: Run tests
+        run: flutter test
 
-      - name: Upload APK
+      - name: Build APK (split per ABI)
+        run: flutter build apk --release --split-per-abi --obfuscate --split-debug-info=build/debug-info
+
+      - name: Upload arm64-v8a APK
         uses: actions/upload-artifact@v4
         with:
-          name: HelloJarvice-APK
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: HelloJarvice-arm64-v8a
+          path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+
+      - name: Upload armeabi-v7a APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: HelloJarvice-armeabi-v7a
+          path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk

@@ -48,3 +48,11 @@ app.*.map.json
 *.jks
 *.keystore
 key.properties
+android/key.properties
+
+# Built APKs
+*.apk
+
+# Environment
+.env*
+!.env.example

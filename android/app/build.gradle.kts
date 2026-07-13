@@ -51,6 +51,12 @@ android {
 
     buildTypes {
         release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
             signingConfig = if (keyPropertiesFile.exists()) {
                 signingConfigs.getByName("release")
             } else {
@@ -66,4 +72,5 @@ flutter {
 
 dependencies {
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.16.3")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 }
